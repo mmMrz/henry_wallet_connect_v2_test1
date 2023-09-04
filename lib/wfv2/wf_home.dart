@@ -1,9 +1,9 @@
 import 'dart:typed_data';
 
+import 'package:QRTest_v2_test1/utils/logger_utils.dart';
 import 'package:eth_sig_util/eth_sig_util.dart';
 import 'package:flutter/material.dart';
-import 'package:henry_wallet_connect_v2_test1/widget/button.dart';
-import 'package:logging/logging.dart';
+import 'package:QRTest_v2_test1/widget/button.dart';
 import 'package:material_dialogs/dialogs.dart';
 import 'package:material_dialogs/widgets/buttons/icon_button.dart';
 import 'package:material_dialogs/widgets/buttons/icon_outline_button.dart';
@@ -20,26 +20,26 @@ class WFHome extends StatefulWidget {
 }
 
 class _WFHomeState extends State<WFHome> {
-  final Logger log = Logger('WFHome');
-
   @override
   void initState() {
     walletConnect();
     super.initState();
   }
 
+  Web3Wallet? wcClient;
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('WalletConnect Flutter Demo'),
+        title: const Text('WalletConnect Demo'),
       ),
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
             const Text(
-              'WalletConnect Flutter Demo',
+              'WalletConnect Demo',
             ),
             normalButton("ScanQR", () {
               scanQR();
@@ -56,7 +56,6 @@ class _WFHomeState extends State<WFHome> {
     );
   }
 
-  Web3Wallet? wcClient;
   Future walletConnect() async {
     wcClient = await Web3Wallet.createInstance(
       projectId: '602617b1157a2c68b1afc1b97d6ffd45',
@@ -85,7 +84,10 @@ class _WFHomeState extends State<WFHome> {
           child: SingleChildScrollView(child: Text(args!.params.toString())),
         ),
         actions: <Widget>[
-          normalButton("Cancel", () => Navigator.of(context).pop(), color: Colors.blueGrey),
+          normalButton("Cancel", () {
+            rejectSession(args.id);
+            Navigator.of(context).pop();
+          }, color: Colors.blueGrey),
           normalButton("Connect", () {
             approveSession(args.id);
             Navigator.of(context).pop();
@@ -193,6 +195,8 @@ class _WFHomeState extends State<WFHome> {
   connect(String wcUri) async {
     // Then, scan the QR code and parse the URI, and pair with the dApp
     // On the first pairing, you will immediately receive onSessionProposal and onAuthRequest events.
+
+    log.d("开始准备连接");
     Uri uri = Uri.parse(wcUri);
     pairing = await wcClient?.pair(uri: uri);
   }
@@ -255,22 +259,27 @@ class _WFHomeState extends State<WFHome> {
     }
   }
 
+  final walletNamespaces = {
+    'eip155': const Namespace(
+      accounts: ['eip155:1:abc'],
+      methods: ['eth_signTransaction', 'eth_sendTransaction', 'personal_sign'],
+      events: ['chainChanged', 'accountsChanged'],
+    ),
+    'kadena': const Namespace(
+      accounts: ['kadena:mainnet01:abc'],
+      methods: ['kadena_sign_v1', 'kadena_quicksign_v1'],
+      events: ['kadena_transaction_updated'],
+    ),
+  };
+
   approveSession(int id) async {
     // Present the UI to the user, and allow them to reject or approve the proposal
-    final walletNamespaces = {
-      'eip155': const Namespace(
-        accounts: ['eip155:1:abc'],
-        methods: ['eth_signTransaction'],
-        events: [],
-      ),
-      'kadena': const Namespace(
-        accounts: ['kadena:mainnet01:abc'],
-        methods: ['kadena_sign_v1', 'kadena_quicksign_v1'],
-        events: ['kadena_transaction_updated'],
-      ),
-    };
+
     await wcClient?.approveSession(id: id, namespaces: walletNamespaces // This will have the accounts requested in params
         );
+  }
+
+  rejectSession(int id) async {
     // Or to reject...
     // Error codes and reasons can be found here: https://docs.walletconnect.com/2.0/specs/clients/sign/error-codes
     await wcClient?.rejectSession(
@@ -284,24 +293,19 @@ class _WFHomeState extends State<WFHome> {
     // granted准予、denied拒绝、restricted限制、permanentlyDenied永久拒绝、limited限制、 provisional临时的
     if (await Permission.camera.request().isGranted) {
       String? cameraScanResult = await scanner.scan();
-      log.fine("cameraScanResult: $cameraScanResult");
+      log.d("cameraScanResult: $cameraScanResult");
       setState(() {
         wcUri = cameraScanResult;
       });
     } else if (mounted) {
-      Dialogs.materialDialog(
-          msg: 'You has been denied the camera, please granted it',
-          title: "No permission",
-          color: Colors.white,
-          context: context,
-          actions: [
-            normalButton("Cancel", color: Colors.blueGrey, () {
-              Navigator.of(context).pop();
-            }),
-            normalButton("Settings", () {
-              openAppSettings();
-            })
-          ]);
+      Dialogs.materialDialog(msg: 'You has been denied the camera, please granted it', title: "No permission", color: Colors.white, context: context, actions: [
+        normalButton("Cancel", color: Colors.blueGrey, () {
+          Navigator.of(context).pop();
+        }),
+        normalButton("Settings", () {
+          openAppSettings();
+        })
+      ]);
     }
   }
 }

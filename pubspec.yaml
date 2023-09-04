@@ -1,5 +1,5 @@
-name: henry_wallet_connect_v2_test1
-description: A new Flutter project.
+name: QRTest_v2_test1
+description: A new project.
 # The following line prevents the package from being accidentally published to
 # pub.dev using `flutter pub publish`. This is preferred for private packages.
 publish_to: 'none' # Remove this line if you wish to publish to pub.dev
@@ -38,12 +38,14 @@ dependencies:
   cupertino_icons: ^1.0.2
   walletconnect_flutter_v2: ^2.1.4
   qrscan: ^0.3.3
-  logging: ^1.2.0
   permission_handler: ^10.4.3
   material_dialogs: ^1.1.4
   eth_sig_util: ^0.0.9
   shared_preferences: ^2.2.1
   ndialog: ^4.3.1
+  logger: ^1.4.0
+  date_formatter: ^0.0.4
+  path_provider: ^2.1.1
 
 dev_dependencies:
   flutter_test:
@@ -54,7 +56,7 @@ dev_dependencies:
   # activated in the `analysis_options.yaml` file located at the root of your
   # package. See that file for information about deactivating specific lint
   # rules and activating additional ones.
-  flutter_lints: ^2.0.0
+  flutter_lints: ^2.0.3
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
