@@ -1,7 +1,8 @@
 import 'dart:typed_data';
 
 import 'package:QRTest_v2_test1/utils/logger_utils.dart';
-import 'package:eth_sig_util/eth_sig_util.dart';
+import 'package:QRTest_v2_test1/utils/wallet/chain_enum.dart';
+import 'package:QRTest_v2_test1/utils/wallet/wallet_utils.dart';
 import 'package:flutter/material.dart';
 import 'package:QRTest_v2_test1/widget/button.dart';
 import 'package:material_dialogs/dialogs.dart';
@@ -22,6 +23,7 @@ class WFHome extends StatefulWidget {
 class _WFHomeState extends State<WFHome> {
   @override
   void initState() {
+    //初始化WalletConnect
     walletConnect();
     super.initState();
   }
@@ -57,6 +59,7 @@ class _WFHomeState extends State<WFHome> {
   }
 
   Future walletConnect() async {
+    //初始化WalletClient
     wcClient = await Web3Wallet.createInstance(
       projectId: '602617b1157a2c68b1afc1b97d6ffd45',
       metadata: const PairingMetadata(
@@ -67,11 +70,12 @@ class _WFHomeState extends State<WFHome> {
       ),
     );
 
+    //注册一个事件监听,这是当请求来临时的回调
     // For a wallet, setup the proposal handler that will display the proposal to the user after the URI has been scanned.
     wcClient?.onSessionProposal.subscribe((SessionProposalEvent? args) async {
       // Handle UI updates using the args.params
       // Keep track of the args.id for the approval response
-
+      //NDialog是一个三方库，来自于pub.dev
       NDialog(
         dialogStyle: DialogStyle(titleDivider: true),
         title: const Text(
@@ -89,37 +93,14 @@ class _WFHomeState extends State<WFHome> {
             Navigator.of(context).pop();
           }, color: Colors.blueGrey),
           normalButton("Connect", () {
-            approveSession(args.id);
+            approveSession(args.id, args.params);
             Navigator.of(context).pop();
           }),
         ],
       ).show(context);
-      // Dialogs.materialDialog(
-      //     context: context,
-      //     title: "Session Proposal",
-      //     msg: "args?.params.toString()",
-      //     customView: Container(
-      //       width: 200,
-      //       height: 200,
-      //       child: SingleChildScrollView(child: Text("test")),
-      //     ),
-      //     actions: [
-      //       IconButton(
-      //         onPressed: () {
-      //           Navigator.of(context).pop();
-      //         },
-      //         icon: const Icon(Icons.close),
-      //       ),
-      //       IconButton(
-      //         onPressed: () {
-      //           approveSession(args!.id);
-      //           Navigator.of(context).pop();
-      //         },
-      //         icon: const Icon(Icons.check),
-      //       ),
-      //     ]);
     });
 
+    //这里可以注册一些我的钱包支持的链
     // Also setup the methods and chains that your wallet supports
 
     // wcClient.registerRequestHandler(
@@ -191,6 +172,7 @@ class _WFHomeState extends State<WFHome> {
     // );
   }
 
+  //当扫描二维码配对连接成功后，会返回一个PairingInfo对象
   PairingInfo? pairing;
   connect(String wcUri) async {
     // Then, scan the QR code and parse the URI, and pair with the dApp
@@ -201,6 +183,7 @@ class _WFHomeState extends State<WFHome> {
     pairing = await wcClient?.pair(uri: uri);
   }
 
+  //断开连接
   disconnect() async {
     // Finally, you can disconnect
     if (pairing != null) {
@@ -211,6 +194,45 @@ class _WFHomeState extends State<WFHome> {
     }
   }
 
+  //批准会话
+  approveSession(int id, ProposalData params) async {
+    // Present the UI to the user, and allow them to reject or approve the proposal
+
+    final Map<String, Namespace> walletNamespaces = {};
+    //根据需要的链来完善返回的命名空间
+    params.requiredNamespaces.forEach((key, value) {
+      value.chains?.forEach((element) {
+        //这里是要求的每个链条，比如eip155:1，kadena:mainnet01，这里要求的是eip155:1:account，所以需要加上account
+        //那要从本地找到
+        // namespace + ":" + reference + ":" + account
+        //获取到链的Enum
+        ChainEnum? chainEnum = chainEnumByCaip2Semantics(element);
+        if (chainEnum != null) {
+          var accountAddress = WalletUtils.getInstance().getAddress(chainEnum, WalletUtils.getInstance().getPublicKey(chainEnum));
+          walletNamespaces[key] = Namespace(
+            accounts: ['$element:$accountAddress'],
+            methods: value.methods,
+            events: value.events,
+          );
+        }
+      });
+    });
+
+    await wcClient?.approveSession(id: id, namespaces: walletNamespaces // This will have the accounts requested in params
+        );
+  }
+
+  //拒绝会话
+  rejectSession(int id) async {
+    // Or to reject...
+    // Error codes and reasons can be found here: https://docs.walletconnect.com/2.0/specs/clients/sign/error-codes
+    await wcClient?.rejectSession(
+      id: id,
+      reason: Errors.getSdkError(Errors.USER_REJECTED),
+    );
+  }
+
+  //签名请求处理
   signRequestHandler(String topic, dynamic parameters) async {
     // Handling Steps
     // 1. Parse the request, if there are any errors thrown while trying to parse
@@ -259,35 +281,9 @@ class _WFHomeState extends State<WFHome> {
     }
   }
 
-  final walletNamespaces = {
-    'eip155': const Namespace(
-      accounts: ['eip155:1:abc'],
-      methods: ['eth_signTransaction', 'eth_sendTransaction', 'personal_sign'],
-      events: ['chainChanged', 'accountsChanged'],
-    ),
-    'kadena': const Namespace(
-      accounts: ['kadena:mainnet01:abc'],
-      methods: ['kadena_sign_v1', 'kadena_quicksign_v1'],
-      events: ['kadena_transaction_updated'],
-    ),
-  };
+  //注册一些钱包支持的链
 
-  approveSession(int id) async {
-    // Present the UI to the user, and allow them to reject or approve the proposal
-
-    await wcClient?.approveSession(id: id, namespaces: walletNamespaces // This will have the accounts requested in params
-        );
-  }
-
-  rejectSession(int id) async {
-    // Or to reject...
-    // Error codes and reasons can be found here: https://docs.walletconnect.com/2.0/specs/clients/sign/error-codes
-    await wcClient?.rejectSession(
-      id: id,
-      reason: Errors.getSdkError(Errors.USER_REJECTED),
-    );
-  }
-
+  //扫描二维码，结束后会更新界面上的wcUri显示出来
   String? wcUri;
   Future scanQR() async {
     // granted准予、denied拒绝、restricted限制、permanentlyDenied永久拒绝、limited限制、 provisional临时的
@@ -298,6 +294,7 @@ class _WFHomeState extends State<WFHome> {
         wcUri = cameraScanResult;
       });
     } else if (mounted) {
+      //如果没有权限，就弹出一个对话框，提示用户去设置里面打开权限
       Dialogs.materialDialog(msg: 'You has been denied the camera, please granted it', title: "No permission", color: Colors.white, context: context, actions: [
         normalButton("Cancel", color: Colors.blueGrey, () {
           Navigator.of(context).pop();

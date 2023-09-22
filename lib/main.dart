@@ -1,3 +1,4 @@
+import 'package:QRTest_v2_test1/wallet/my_wallet.dart';
 import 'package:flutter/material.dart';
 import 'package:QRTest_v2_test1/wcv2/wc_home.dart';
 import 'package:QRTest_v2_test1/wfv2/wf_home.dart';
@@ -71,6 +72,13 @@ class _MyHomePageState extends State<MyHomePage> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
+            normalButton("Show My Wallet", () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => MyWalletPage()),
+              );
+            }),
+            const SizedBox(height: 20),
             normalButton("WalletConnect_V2", () {
               Navigator.push(
                 context,
