@@ -101,7 +101,7 @@ class WFHomeView extends StatelessWidget {
                     leading: CachedNetworkImage(
                       width: 54,
                       height: 54,
-                      imageUrl: value.peer.metadata.icons.first,
+                      imageUrl: value.peer.metadata.icons.isNotEmpty ? value.peer.metadata.icons.first : "https://avatars.githubusercontent.com/u/37784886?s=200&v=4",
                       placeholder: (context, url) => const Center(
                         child: SizedBox(
                           width: 54,

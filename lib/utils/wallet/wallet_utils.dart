@@ -39,6 +39,12 @@ class WalletUtils {
         publicKey = wallet.bitcoinbech32.createPublicKey(privateKey);
         break;
       case ChainEnum.ethereum:
+      case ChainEnum.ethereumsepolia:
+      case ChainEnum.ethereumgoerli:
+      case ChainEnum.polygon:
+      case ChainEnum.polygonmumbai:
+      case ChainEnum.arbitrum:
+      case ChainEnum.arbitrumgoerli:
       case ChainEnum.bnbsmartchain:
         publicKey = wallet.ethereum.createPublicKey(privateKey);
         break;
@@ -61,6 +67,12 @@ class WalletUtils {
         address = wallet.bitcoinbech32.createAddress(publicKey);
         break;
       case ChainEnum.ethereum:
+      case ChainEnum.ethereumsepolia:
+      case ChainEnum.ethereumgoerli:
+      case ChainEnum.polygon:
+      case ChainEnum.polygonmumbai:
+      case ChainEnum.arbitrum:
+      case ChainEnum.arbitrumgoerli:
       case ChainEnum.bnbsmartchain:
         address = wallet.ethereum.createAddress(publicKey);
         break;

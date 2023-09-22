@@ -1,6 +1,12 @@
 enum ChainEnum {
   tron,
   ethereum,
+  ethereumsepolia,
+  ethereumgoerli,
+  polygon,
+  polygonmumbai,
+  arbitrum,
+  arbitrumgoerli,
   bnbsmartchain,
   bitcoin,
   bitcoinbech32,
@@ -19,6 +25,12 @@ enum ChainEnum {
 // https://github.com/ChainAgnostic/CAIPs/blob/main/CAIPs/caip-2.md
 Map<ChainEnum, String> caip2Map = {
   ChainEnum.ethereum: "eip155:1",
+  ChainEnum.ethereumgoerli: "eip155:5",
+  ChainEnum.ethereumsepolia: "eip155:11155111",
+  ChainEnum.polygon: "eip155:137",
+  ChainEnum.polygonmumbai: "eip155:80001",
+  ChainEnum.arbitrum: "eip155:42161",
+  ChainEnum.arbitrumgoerli: "eip155:421613",
   ChainEnum.bnbsmartchain: "eip155:56",
   ChainEnum.bitcoin: "bip122:000000000019d6689c085ae165831e93",
   ChainEnum.bitcoinbech32: "unknow:0",

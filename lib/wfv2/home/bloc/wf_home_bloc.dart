@@ -52,10 +52,24 @@ class WfHomeBloc extends Bloc<WfHomeEvent, WfHomeState> {
       log.d("receives a session proposal that it can't make the proper Namespaces for");
     });
 
+    wcClient.onSessionConnect.subscribe((SessionConnect? args) {
+      // Handle the session deletion
+      log.d("onSessionConnect");
+      refreshActiveSession();
+    });
     wcClient.onSessionDelete.subscribe((SessionDelete? args) {
       // Handle the session deletion
       log.d("onSessionDeleted");
       refreshActiveSession();
+    });
+    wcClient.onSessionRequest.subscribe((SessionRequestEvent? args) {
+      log.d("onSessionRequest-----start");
+      log.d(args?.id.toString());
+      log.d(args?.topic);
+      log.d(args?.method);
+      log.d(args?.chainId);
+      log.d(args?.params.toString());
+      log.d("onSessionRequest-----end");
     });
 
     //这里可以注册一些我的钱包支持的链
@@ -66,6 +80,29 @@ class WfHomeBloc extends Bloc<WfHomeEvent, WfHomeState> {
     //   method: 'eth_sendTransaction',
     //   handler: signRequestHandler,
     // );
+    wcClient.registerRequestHandler(
+      chainId: 'eip155:1',
+      method: 'wallet_addEthereumChain',
+      handler: (String topic, dynamic parameters) {
+        log.d("wallet_addEthereumChain");
+        log.d(parameters.toString());
+        return null;
+      },
+    );
+    wcClient.registerRequestHandler(
+      chainId: 'eip155:1',
+      method: 'wallet_switchEthereumChain',
+      handler: (String topic, dynamic parameters) {
+        log.d("wallet_switchEthereumChain");
+        log.d(parameters.toString());
+        return null;
+      },
+    );
+
+    wcClient.onSessionPing.subscribe((SessionPing? args) {
+      log.d(args?.id.toString());
+      log.d(args?.topic);
+    });
 
     wcClient.core.relayClient.onRelayClientMessage.subscribe((MessageEvent? args) {
       log.d("WC2:RelayClient:onRelayClientMessage:$args");
@@ -167,11 +204,53 @@ class WfHomeBloc extends Bloc<WfHomeEvent, WfHomeState> {
         ChainEnum? chainEnum = chainEnumByCaip2Semantics(element);
         if (chainEnum != null) {
           var accountAddress = WalletUtils.getInstance().getAddress(chainEnum, WalletUtils.getInstance().getPublicKey(chainEnum));
-          walletNamespaces[key] = Namespace(
-            accounts: ['$element:$accountAddress'],
-            methods: value.methods,
-            events: value.events,
-          );
+          Namespace? namespace = walletNamespaces[key];
+          if (namespace != null) {
+            List<String> accounts = List.of(namespace.accounts);
+            accounts.add('$element:$accountAddress');
+            namespace = Namespace(
+              accounts: accounts,
+              methods: value.methods,
+              events: value.events,
+            );
+          } else {
+            namespace = Namespace(
+              accounts: ['$element:$accountAddress'],
+              methods: value.methods,
+              events: value.events,
+            );
+          }
+          walletNamespaces[key] = namespace;
+        }
+      });
+    });
+
+    params.optionalNamespaces.forEach((key, value) {
+      value.chains?.forEach((element) {
+        //这里是要求的每个链条，比如eip155:1，kadena:mainnet01，这里要求的是eip155:1:account，所以需要加上account
+        //那要从本地找到
+        // namespace + ":" + reference + ":" + account
+        //获取到链的Enum
+        ChainEnum? chainEnum = chainEnumByCaip2Semantics(element);
+        if (chainEnum != null) {
+          var accountAddress = WalletUtils.getInstance().getAddress(chainEnum, WalletUtils.getInstance().getPublicKey(chainEnum));
+          Namespace? namespace = walletNamespaces[key];
+          if (namespace != null) {
+            List<String> accounts = List.of(namespace.accounts);
+            accounts.add('$element:$accountAddress');
+            namespace = Namespace(
+              accounts: accounts,
+              methods: value.methods,
+              events: value.events,
+            );
+          } else {
+            namespace = Namespace(
+              accounts: ['$element:$accountAddress'],
+              methods: value.methods,
+              events: value.events,
+            );
+          }
+          walletNamespaces[key] = namespace;
         }
       });
     });
