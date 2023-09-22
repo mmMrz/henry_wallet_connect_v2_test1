@@ -75,14 +75,14 @@ class _MyHomePageState extends State<MyHomePage> {
             normalButton("Show My Wallet", () {
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (context) => MyWalletPage()),
+                MaterialPageRoute(builder: (context) => const MyWalletPage()),
               );
             }),
             const SizedBox(height: 20),
             normalButton("WalletConnect_V2", () {
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (context) => const WFHome()),
+                MaterialPageRoute(builder: (context) => const WFHomePage()),
               );
             }),
             const SizedBox(height: 20),

@@ -113,27 +113,27 @@ class LoggerManager {
   }
 
   // Debug
-  void d(String message) {
+  void d(String? message) {
     logger.d("WCLOG-->$message");
   }
 
   // verbose
-  void v(String message) {
+  void v(String? message) {
     logger.v("WCLOG-->$message");
   }
 
   // info
-  void i(String message) {
+  void i(String? message) {
     logger.i("WCLOG-->$message");
   }
 
   // warning
-  void w(String message) {
+  void w(String? message) {
     logger.w("WCLOG-->$message");
   }
 
   // error
-  void e(String message) {
+  void e(String? message) {
     logger.e("WCLOG-->$message");
   }
 
