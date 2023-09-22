@@ -23,16 +23,19 @@ class WcUriUpdatedEvent extends WfHomeEvent {
 }
 
 class NoPermissionEvent extends WfHomeEvent {
-  const NoPermissionEvent();
+  const NoPermissionEvent({required this.showNoCameraPermissionDialog});
+
+  final bool showNoCameraPermissionDialog;
 
   @override
   List<Object?> get props => [];
 }
 
 class OnSessionProposalEvent extends WfHomeEvent {
-  const OnSessionProposalEvent({required this.args});
+  const OnSessionProposalEvent({required this.args, required this.showSessionProposalDialog});
 
   final SessionProposalEvent? args;
+  final bool showSessionProposalDialog;
 
   @override
   List<Object?> get props => [args];

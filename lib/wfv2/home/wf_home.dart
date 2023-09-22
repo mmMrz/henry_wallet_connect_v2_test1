@@ -1,17 +1,12 @@
 import 'dart:typed_data';
 
-import 'package:QRTest_v2_test1/utils/logger_utils.dart';
-import 'package:QRTest_v2_test1/utils/wallet/chain_enum.dart';
-import 'package:QRTest_v2_test1/utils/wallet/wallet_utils.dart';
-import 'package:QRTest_v2_test1/wfv2/bloc/wf_home_bloc.dart';
 import 'package:QRTest_v2_test1/wfv2/dapp_detail_page/dapp_detail.dart';
+import 'package:QRTest_v2_test1/wfv2/home/bloc/wf_home_bloc.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:QRTest_v2_test1/widget/button.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:material_dialogs/dialogs.dart';
-import 'package:material_dialogs/widgets/buttons/icon_button.dart';
-import 'package:material_dialogs/widgets/buttons/icon_outline_button.dart';
 import 'package:ndialog/ndialog.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:walletconnect_flutter_v2/walletconnect_flutter_v2.dart';
@@ -47,7 +42,7 @@ class WFHomeView extends StatelessWidget {
     return BlocListener<WfHomeBloc, WfHomeState>(
       listener: (context, state) {
         //NDialog是一个三方库，来自于pub.dev
-        if (state is NoPermissionState) {
+        if (state.showNoCameraPermissionDialog != null && state.showNoCameraPermissionDialog!) {
           Dialogs.materialDialog(msg: 'You has been denied the camera, please granted it', title: "No permission", color: Colors.white, context: context, actions: [
             normalButton("Cancel", color: Colors.blueGrey, () {
               Navigator.of(context).pop();
@@ -56,7 +51,7 @@ class WFHomeView extends StatelessWidget {
               openAppSettings();
             })
           ]);
-        } else if (state is WfHomeSessionProposalState) {
+        } else if (state.showSessionProposalDialog != null && state.showSessionProposalDialog!) {
           NDialog(
             dialogStyle: DialogStyle(titleDivider: true),
             title: const Text(
@@ -71,10 +66,12 @@ class WFHomeView extends StatelessWidget {
             actions: <Widget>[
               normalButton("Cancel", () {
                 bloc.rejectSession(state.args!.id);
+                bloc.add(const OnSessionProposalEvent(args: null, showSessionProposalDialog: false));
                 Navigator.of(context).pop();
               }, color: Colors.blueGrey),
               normalButton("Connect", () {
                 bloc.approveSession(state.args!.id, state.args!.params);
+                bloc.add(const OnSessionProposalEvent(args: null, showSessionProposalDialog: false));
                 Navigator.of(context).pop();
               }),
             ],
@@ -83,13 +80,19 @@ class WFHomeView extends StatelessWidget {
       },
       child: BlocBuilder<WfHomeBloc, WfHomeState>(
         builder: (context, state) {
-          if (state.activeSessions != null && state.activeSessions!.isNotEmpty) {
+          if (state.activeSessions == null) {
+            return const Center(
+              child: CircularProgressIndicator(),
+            );
+          } else if (state.activeSessions!.isNotEmpty) {
             return ListView.builder(
-              itemCount: state.activeSessions!.length,
+              itemCount: state.activeSessions!.length + 1,
               itemBuilder: (BuildContext context, int index) {
+                if (index == state.activeSessions!.length) {
+                  return addConnect(bloc, state);
+                }
                 String key = state.activeSessions!.keys.elementAt(index);
                 SessionData value = state.activeSessions![key]!;
-
                 return GestureDetector(
                   onTap: () {
                     Navigator.of(context).push(MaterialPageRoute(builder: (context) => DappDetailPage(sessionData: value)));
@@ -114,27 +117,30 @@ class WFHomeView extends StatelessWidget {
                 );
               },
             );
+          } else {
+            return addConnect(bloc, state);
           }
-          return Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: <Widget>[
-                const Text(
-                  'WalletConnect Demo',
-                ),
-                normalButton("ScanQR", () {
-                  bloc.scanQR();
-                }, width: 200),
-                state.wcUri?.isNotEmpty ?? false ? Text(state.wcUri!) : const SizedBox(),
-                state.wcUri?.isNotEmpty ?? false
-                    ? normalButton("Connect", () {
-                        bloc.connect(state.wcUri!);
-                      }, width: 200)
-                    : const SizedBox(),
-              ],
-            ),
-          );
         },
+      ),
+    );
+  }
+
+  Widget addConnect(WfHomeBloc bloc, WfHomeState state) {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: <Widget>[
+          const SizedBox(height: 20),
+          normalButton("ScanQR", () {
+            bloc.scanQR();
+          }, width: 200),
+          state.wcUri?.isNotEmpty ?? false ? Text(state.wcUri!) : const SizedBox(),
+          state.wcUri?.isNotEmpty ?? false
+              ? normalButton("Connect", () {
+                  bloc.connect(state.wcUri!);
+                }, width: 200)
+              : const SizedBox(),
+        ],
       ),
     );
   }

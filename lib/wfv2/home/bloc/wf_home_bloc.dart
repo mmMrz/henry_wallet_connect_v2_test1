@@ -1,6 +1,7 @@
 import 'package:QRTest_v2_test1/utils/logger_utils.dart';
 import 'package:QRTest_v2_test1/utils/wallet/chain_enum.dart';
 import 'package:QRTest_v2_test1/utils/wallet/wallet_utils.dart';
+import 'package:QRTest_v2_test1/wfv2/client/wc_client.dart';
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:ndialog/ndialog.dart';
@@ -15,13 +16,13 @@ class WfHomeBloc extends Bloc<WfHomeEvent, WfHomeState> {
   WfHomeBloc() : super(const WfHomeStateInitial()) {
     on<WfHomeEvent>((event, emit) {
       if (event is ActiveSessionUpdatedEvent) {
-        emit(WfHomeStateInitial(activeSessions: event.activeSessions));
+        emit(state.copyWith(activeSessions: event.activeSessions));
       } else if (event is OnSessionProposalEvent) {
-        emit(WfHomeSessionProposalState(args: event.args));
+        emit(state.copyWith(args: event.args, showSessionProposalDialog: event.showSessionProposalDialog));
       } else if (event is NoPermissionEvent) {
-        emit(const NoPermissionState());
+        emit(state.copyWith(showNoCameraPermissionDialog: event.showNoCameraPermissionDialog));
       } else if (event is WcUriUpdatedEvent) {
-        emit(WfHomeStateInitial(wcUri: event.wcUri));
+        emit(state.copyWith(wcUri: event.wcUri));
       }
     });
     walletConnect();
@@ -29,27 +30,19 @@ class WfHomeBloc extends Bloc<WfHomeEvent, WfHomeState> {
 
   late Web3Wallet wcClient;
 
-  Future walletConnect() async {
+  walletConnect() async {
     //初始化WalletClient
-    wcClient = await Web3Wallet.createInstance(
-      projectId: '602617b1157a2c68b1afc1b97d6ffd45',
-      metadata: const PairingMetadata(
-        name: 'HenryWCV2Test1',
-        description: 'Henry Wallet Connect V2 Test 1',
-        url: 'https://walletconnect.com',
-        icons: ['https://avatars.githubusercontent.com/u/37784886'],
-      ),
-    );
-    Map<String, SessionData> activeSessions = wcClient.getActiveSessions();
-    log.d(activeSessions.toString());
-    add(ActiveSessionUpdatedEvent(activeSessions: activeSessions));
+    await WFV2Client.getInstance().init();
+    wcClient = WFV2Client.getInstance().wcClient;
+
+    refreshActiveSession();
 
     //注册一个事件监听,这是当请求来临时的回调
     // For a wallet, setup the proposal handler that will display the proposal to the user after the URI has been scanned.
     wcClient.onSessionProposal.subscribe((SessionProposalEvent? args) async {
       // Handle UI updates using the args.params
       // Keep track of the args.id for the approval response
-      add(OnSessionProposalEvent(args: args));
+      add(OnSessionProposalEvent(args: args, showSessionProposalDialog: true));
     });
 
     // If your wallet receives a session proposal that it can't make the proper Namespaces for,
@@ -57,6 +50,12 @@ class WfHomeBloc extends Bloc<WfHomeEvent, WfHomeState> {
     wcClient.onSessionProposalError.subscribe((SessionProposalErrorEvent? args) {
       // Handle the error
       log.d("receives a session proposal that it can't make the proper Namespaces for");
+    });
+
+    wcClient.onSessionDelete.subscribe((SessionDelete? args) {
+      // Handle the session deletion
+      log.d("onSessionDeleted");
+      refreshActiveSession();
     });
 
     //这里可以注册一些我的钱包支持的链
@@ -177,8 +176,18 @@ class WfHomeBloc extends Bloc<WfHomeEvent, WfHomeState> {
       });
     });
 
-    await wcClient.approveSession(id: id, namespaces: walletNamespaces // This will have the accounts requested in params
-        );
+    await wcClient.approveSession(id: id, namespaces: walletNamespaces);
+    refreshActiveSession();
+  }
+
+  refreshActiveSession() {
+    Map<String, SessionData> activeSessions = wcClient.getActiveSessions();
+    log.d(activeSessions.toString());
+    if (activeSessions.isNotEmpty) {
+      add(ActiveSessionUpdatedEvent(activeSessions: activeSessions));
+    } else {
+      add(const ActiveSessionUpdatedEvent(activeSessions: {}));
+    }
   }
 
   //拒绝会话
@@ -252,7 +261,7 @@ class WfHomeBloc extends Bloc<WfHomeEvent, WfHomeState> {
       add(WcUriUpdatedEvent(wcUri: cameraScanResult));
     } else {
       //如果没有权限，就弹出一个对话框，提示用户去设置里面打开权限
-      add(const NoPermissionEvent());
+      add(const NoPermissionEvent(showNoCameraPermissionDialog: true));
     }
   }
 }

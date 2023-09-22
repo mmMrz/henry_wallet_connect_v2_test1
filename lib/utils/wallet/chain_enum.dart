@@ -19,7 +19,7 @@ enum ChainEnum {
 // https://github.com/ChainAgnostic/CAIPs/blob/main/CAIPs/caip-2.md
 Map<ChainEnum, String> caip2Map = {
   ChainEnum.ethereum: "eip155:1",
-  ChainEnum.ethereum: "eip155:56",
+  ChainEnum.bnbsmartchain: "eip155:56",
   ChainEnum.bitcoin: "bip122:000000000019d6689c085ae165831e93",
   ChainEnum.bitcoinbech32: "unknow:0",
   ChainEnum.tron: "unknow:0",

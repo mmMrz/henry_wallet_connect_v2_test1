@@ -39,6 +39,7 @@ class WalletUtils {
         publicKey = wallet.bitcoinbech32.createPublicKey(privateKey);
         break;
       case ChainEnum.ethereum:
+      case ChainEnum.bnbsmartchain:
         publicKey = wallet.ethereum.createPublicKey(privateKey);
         break;
       case ChainEnum.tron:
@@ -60,6 +61,7 @@ class WalletUtils {
         address = wallet.bitcoinbech32.createAddress(publicKey);
         break;
       case ChainEnum.ethereum:
+      case ChainEnum.bnbsmartchain:
         address = wallet.ethereum.createAddress(publicKey);
         break;
       case ChainEnum.tron:
