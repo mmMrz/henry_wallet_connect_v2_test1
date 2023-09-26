@@ -78,7 +78,7 @@ class WfHomeBloc extends Bloc<WfHomeEvent, WfHomeState> {
     // wcClient?.registerRequestHandler(
     //   chainId: 'eip155:1',
     //   method: 'eth_sendTransaction',
-    //   handler: signRequestHandler,
+    //   handler: signRequestHandler,asdf
     // );
     wcClient.registerRequestHandler(
       chainId: 'eip155:1',
