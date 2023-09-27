@@ -1,5 +1,10 @@
+import 'dart:math';
+import 'dart:typed_data';
+
 import 'package:QRTest_v2_test1/utils/logger_utils.dart';
-import 'package:wallet/wallet.dart' as wallet;
+import 'package:web3dart/crypto.dart';
+import 'package:web3dart/web3dart.dart';
+// import 'package:wallet/wallet.dart' as wallet;
 
 import 'chain_enum.dart';
 
@@ -13,74 +18,108 @@ class WalletUtils {
     return _instance!;
   }
 
-  late wallet.PrivateKey privateKey;
+  late EthPrivateKey credentials;
 
   WalletUtils._() {
-    List<String> mnemonic = mnemonicStr.split(",");
-    const passphrase = '';
+    credentials = EthPrivateKey.fromHex("300851edb635b2dbb2d4e70615444925afeb60bf95c19365aff88740e09d7345");
 
-    final seed = wallet.mnemonicToSeed(mnemonic, passphrase: passphrase);
-    final master = wallet.ExtendedPrivateKey.master(seed, wallet.xprv);
-    final root = master.forPath("m/44'/195'/0'/0/0");
-    privateKey = wallet.PrivateKey((root as wallet.ExtendedPrivateKey).key);
+    // In either way, the library can derive the public key and the address
+    // from a private key:
+    var address = credentials.address;
+
+    log.d(address.hex);
   }
 
-  getPrivateKey() {
-    return privateKey;
+  String getPrivateKey() {
+    return bytesToHex(credentials.privateKey);
   }
 
-  wallet.PublicKey getPublicKey(ChainEnum chainEnum) {
-    wallet.PublicKey publicKey;
+  String getPublicKey(ChainEnum chainEnum) {
+    String publicKey;
     switch (chainEnum) {
       case ChainEnum.bitcoin:
-        publicKey = wallet.bitcoin.createPublicKey(privateKey);
+        publicKey = "wallet.bitcoin.createPublicKey(privateKey)";
         break;
       case ChainEnum.bitcoinbech32:
-        publicKey = wallet.bitcoinbech32.createPublicKey(privateKey);
+        publicKey = "wallet.bitcoinbech32.createPublicKey(privateKey)";
         break;
+      case ChainEnum.arbitrum:
+      case ChainEnum.arbitrumgoerli:
+      case ChainEnum.arbitrumrinkeby:
+      case ChainEnum.avalanchecchain:
+      case ChainEnum.avalanchecchaintestnet:
+      case ChainEnum.bnbsmartchain:
+      case ChainEnum.bnbsmartchaintestnet:
+      case ChainEnum.binancechain:
+      case ChainEnum.bitkubchain:
+      case ChainEnum.bitkubchaintestnet:
+      case ChainEnum.celo:
+      case ChainEnum.celotestnet:
+      case ChainEnum.cronos:
+      case ChainEnum.cronostestnet:
       case ChainEnum.ethereum:
       case ChainEnum.ethereumsepolia:
       case ChainEnum.ethereumgoerli:
+      case ChainEnum.ethereumclassic:
+      case ChainEnum.ethereumclassictestnet:
+      case ChainEnum.filecoin:
+      case ChainEnum.filecointestnet:
+      case ChainEnum.okc:
+      case ChainEnum.okctestnet:
       case ChainEnum.polygon:
       case ChainEnum.polygonmumbai:
-      case ChainEnum.arbitrum:
-      case ChainEnum.arbitrumgoerli:
-      case ChainEnum.bnbsmartchain:
-        publicKey = wallet.ethereum.createPublicKey(privateKey);
+        publicKey = bytesToHex(credentials.encodedPublicKey);
         break;
       case ChainEnum.tron:
-        publicKey = wallet.tron.createPublicKey(privateKey);
+        publicKey = "wallet.tron.createPublicKey(privateKey)";
         break;
       default:
-        publicKey = wallet.bitcoin.createPublicKey(privateKey);
+        publicKey = bytesToHex(credentials.encodedPublicKey);
     }
     return publicKey;
   }
 
-  String getAddress(ChainEnum chainEnum, wallet.PublicKey publicKey) {
+  String getAddress(ChainEnum chainEnum) {
     String address;
     switch (chainEnum) {
       case ChainEnum.bitcoin:
-        address = wallet.bitcoin.createAddress(publicKey);
+        address = "wallet.bitcoin.createAddress(publicKey)";
         break;
       case ChainEnum.bitcoinbech32:
-        address = wallet.bitcoinbech32.createAddress(publicKey);
+        address = "wallet.bitcoinbech32.createAddress(publicKey)";
         break;
+      case ChainEnum.arbitrum:
+      case ChainEnum.arbitrumgoerli:
+      case ChainEnum.arbitrumrinkeby:
+      case ChainEnum.avalanchecchain:
+      case ChainEnum.avalanchecchaintestnet:
+      case ChainEnum.bnbsmartchain:
+      case ChainEnum.bnbsmartchaintestnet:
+      case ChainEnum.binancechain:
+      case ChainEnum.bitkubchain:
+      case ChainEnum.bitkubchaintestnet:
+      case ChainEnum.celo:
+      case ChainEnum.celotestnet:
+      case ChainEnum.cronos:
+      case ChainEnum.cronostestnet:
       case ChainEnum.ethereum:
       case ChainEnum.ethereumsepolia:
       case ChainEnum.ethereumgoerli:
+      case ChainEnum.ethereumclassic:
+      case ChainEnum.ethereumclassictestnet:
+      case ChainEnum.filecoin:
+      case ChainEnum.filecointestnet:
+      case ChainEnum.okc:
+      case ChainEnum.okctestnet:
       case ChainEnum.polygon:
       case ChainEnum.polygonmumbai:
-      case ChainEnum.arbitrum:
-      case ChainEnum.arbitrumgoerli:
-      case ChainEnum.bnbsmartchain:
-        address = wallet.ethereum.createAddress(publicKey);
+        address = credentials.address.hex;
         break;
       case ChainEnum.tron:
-        address = wallet.tron.createAddress(publicKey);
+        address = "wallet.tron.createAddress(publicKey)";
         break;
       default:
-        address = wallet.bitcoin.createAddress(publicKey);
+        address = credentials.address.hex;
     }
     return address;
   }

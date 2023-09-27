@@ -29,7 +29,7 @@ class MyWalletBloc extends Bloc<MyWalletEvent, MyWalletState> {
     //不知道为什么，这里必须要用一个协程来执行，不然会造成堵塞，Future也不行，这个问题待研究.
     void runTaskInIsolate(SendPort sendPort) {
       final WalletUtils walletUtils = WalletUtils.getInstance();
-      final String bitcoinAddress = walletUtils.getAddress(ChainEnum.bitcoin, walletUtils.getPublicKey(ChainEnum.bitcoin));
+      final String bitcoinAddress = walletUtils.getAddress(ChainEnum.bitcoin);
       sendPort.send(bitcoinAddress);
     }
 
@@ -45,7 +45,7 @@ class MyWalletBloc extends Bloc<MyWalletEvent, MyWalletState> {
   loadBitcoinBech32Wallet() {
     void runTaskInIsolate(SendPort sendPort) {
       final WalletUtils walletUtils = WalletUtils.getInstance();
-      final String bitcoinBech32Address = walletUtils.getAddress(ChainEnum.bitcoinbech32, walletUtils.getPublicKey(ChainEnum.bitcoinbech32));
+      final String bitcoinBech32Address = walletUtils.getAddress(ChainEnum.bitcoinbech32);
       sendPort.send(bitcoinBech32Address);
     }
 
@@ -61,7 +61,7 @@ class MyWalletBloc extends Bloc<MyWalletEvent, MyWalletState> {
   loadEthereumWallet() {
     void runTaskInIsolate(SendPort sendPort) {
       final WalletUtils walletUtils = WalletUtils.getInstance();
-      final String ethereumAddress = walletUtils.getAddress(ChainEnum.ethereum, walletUtils.getPublicKey(ChainEnum.ethereum));
+      final String ethereumAddress = walletUtils.getAddress(ChainEnum.ethereum);
       sendPort.send(ethereumAddress);
     }
 
@@ -77,7 +77,7 @@ class MyWalletBloc extends Bloc<MyWalletEvent, MyWalletState> {
   loadTronWallet() {
     void runTaskInIsolate(SendPort sendPort) {
       final WalletUtils walletUtils = WalletUtils.getInstance();
-      final String tronAddress = walletUtils.getAddress(ChainEnum.tron, walletUtils.getPublicKey(ChainEnum.tron));
+      final String tronAddress = walletUtils.getAddress(ChainEnum.tron);
       sendPort.send(tronAddress);
     }
 

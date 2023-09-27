@@ -4,7 +4,7 @@
 <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
 <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
    <application
-        android:label="henry_wallet_connect_v2_test1"
+        android:label="UKWCv2Test"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity

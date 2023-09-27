@@ -70,9 +70,9 @@ class WFHomeView extends StatelessWidget {
                 Navigator.of(context).pop();
               }, color: Colors.blueGrey),
               normalButton("Connect", () {
+                Navigator.of(context).pop();
                 bloc.approveSession(state.args!.id, state.args!.params);
                 bloc.add(const OnSessionProposalEvent(args: null, showSessionProposalDialog: false));
-                Navigator.of(context).pop();
               }),
             ],
           ).show(context);
