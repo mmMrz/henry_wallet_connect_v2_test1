@@ -87,8 +87,8 @@ class WfHomeBloc extends Bloc<WfHomeEvent, WfHomeState> {
 
     //这里可以注册一些我的钱包支持的链
     //这里必须要循环调用
-    ChainEnum.values.forEach((element) {
-      String? caip2id = caip2Map[element];
+    for (var element in ChainEnum.values) {
+      String? caip2id = caip2Map[element]?.caip2Id;
       if (caip2id != null && caip2id.startsWith("eip155:")) {
         wcClient.registerRequestHandler(
           chainId: caip2id,
@@ -137,13 +137,11 @@ class WfHomeBloc extends Bloc<WfHomeEvent, WfHomeState> {
             log.d("wallet_addEthereumChain");
             log.d("parameters->${parameters.toString()}");
             int chatId = hexToDartInt(parameters[0]["chainId"]);
-            String? caip2Id = caip2Map["eip155:$chatId"];
+            String? caip2Id = "eip155:$chatId";
             bool supported = false;
-            if (caip2Id != null) {
-              ChainEnum? chainEnum = chainEnumByCaip2Semantics(caip2Id);
-              if (chainEnum != null) {
-                supported = true;
-              }
+            ChainEnum? chainEnum = chainEnumByCaip2Semantics(caip2Id);
+            if (chainEnum != null) {
+              supported = true;
             }
             if (supported) {
               return null;
@@ -159,13 +157,11 @@ class WfHomeBloc extends Bloc<WfHomeEvent, WfHomeState> {
             log.d("wallet_switchEthereumChain");
             log.d("parameters->${parameters.toString()}");
             int chatId = hexToDartInt(parameters[0]["chainId"]);
-            String? caip2Id = caip2Map["eip155:$chatId"];
+            String? caip2Id = "eip155:$chatId";
             bool supported = false;
-            if (caip2Id != null) {
-              ChainEnum? chainEnum = chainEnumByCaip2Semantics(caip2Id);
-              if (chainEnum != null) {
-                supported = true;
-              }
+            ChainEnum? chainEnum = chainEnumByCaip2Semantics(caip2Id);
+            if (chainEnum != null) {
+              supported = true;
             }
             if (supported) {
               return null;
@@ -175,7 +171,7 @@ class WfHomeBloc extends Bloc<WfHomeEvent, WfHomeState> {
           },
         );
       }
-    });
+    }
 // https: //polygon-rpc.com
     // wcClient?.registerRequestHandler(
     //   chainId: 'eip155:1',
@@ -343,7 +339,8 @@ class WfHomeBloc extends Bloc<WfHomeEvent, WfHomeState> {
         content: SizedBox(
           width: 200,
           height: 200,
-          child: SingleChildScrollView(child: Text("Some requested chains is required but not supported currently:\n${notSupportedChains.join("\n")}")),
+          child:
+              SingleChildScrollView(child: Text("Some requested chains is required but not supported currently:\n${notSupportedChains.join("\n")}")),
         ),
         actions: <Widget>[
           normalButton("Okay I know", () {
