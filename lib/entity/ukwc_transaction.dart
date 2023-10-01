@@ -35,14 +35,14 @@ class UKWCTransaction {
   static UKWCTransaction _walletConnectTransactionFromJson(Map<String, dynamic> json) => UKWCTransaction(
         from: json['from'] as String,
         to: json['to'] as String,
-        nonce: json['nonce'] as String,
-        gasPrice: json['gasPrice'] as String,
-        maxFeePerGas: json['maxFeePerGas'] as String,
-        maxPriorityFeePerGas: json['maxPriorityFeePerGas'] as String,
-        gas: json['gas'] as String,
-        gasLimit: json['gasLimit'] as String,
+        nonce: json['nonce'] as String?,
+        gasPrice: json['gasPrice'] as String?,
+        maxFeePerGas: json['maxFeePerGas'] as String?,
+        maxPriorityFeePerGas: json['maxPriorityFeePerGas'] as String?,
+        gas: json['gas'] as String?,
+        gasLimit: json['gasLimit'] as String?,
         value: json['value'] as String,
-        data: json['data'] as String,
+        data: json['data'] as String?,
       );
 
   Map<String, dynamic> walletConnectTransactionToJson(UKWCTransaction instance) => <String, dynamic>{

@@ -65,6 +65,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.2.0"
+  byte_util:
+    dependency: "direct main"
+    description:
+      name: byte_util
+      sha256: "766790158b7352c3bc3cd2d1ad4f1f8d3b2952c243efd11ab44fd1c8fd9f17f2"
+      url: "https://pub.dev"
+    source: hosted
+    version: "3.0.0"
   cached_network_image:
     dependency: "direct main"
     description:
@@ -270,6 +278,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "3.3.1"
+  flutter_json_viewer2:
+    dependency: "direct main"
+    description:
+      name: flutter_json_viewer2
+      sha256: "97c97a7dbc662c68395b1ecf31a396dfc4efa010fec130dcd427f529e341814a"
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.0.2"
   flutter_lints:
     dependency: "direct dev"
     description:
@@ -296,6 +312,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.4.1"
+  hexdump:
+    dependency: "direct main"
+    description:
+      name: hexdump
+      sha256: "0d2a4d9bce491fd0dd61862ac973ca31ec8a80f28f7d6a7216eed1ae2b5d889e"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.1.0"
   http:
     dependency: transitive
     description:

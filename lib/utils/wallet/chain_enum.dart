@@ -306,7 +306,7 @@ Map<ChainEnum, ChainConfigBean> caip2Map = {
 
 ChainEnum? chainEnumByCaip2Semantics(String value) {
   for (var entry in caip2Map.entries) {
-    if (entry.value == value) {
+    if (entry.value.caip2Id == value) {
       return entry.key;
     }
   }

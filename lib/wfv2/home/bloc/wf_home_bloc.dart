@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:typed_data';
 
+import 'package:QRTest_v2_test1/bean/chain_config_bean.dart';
 import 'package:QRTest_v2_test1/entity/ukwc_transaction.dart';
 import 'package:QRTest_v2_test1/main.dart';
 import 'package:QRTest_v2_test1/utils/logger_utils.dart';
@@ -9,11 +10,14 @@ import 'package:QRTest_v2_test1/utils/wallet/eth_utils.dart';
 import 'package:QRTest_v2_test1/utils/wallet/wallet_utils.dart';
 import 'package:QRTest_v2_test1/wfv2/client/wc_client.dart';
 import 'package:QRTest_v2_test1/widget/button.dart';
+import 'package:byte_util/byte_util.dart';
 import 'package:convert/convert.dart';
 import 'package:equatable/equatable.dart';
 import 'package:eth_sig_util/eth_sig_util.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_json_viewer2/flutter_json_viewer.dart';
+import 'package:hexdump/hexdump.dart';
 import 'package:ndialog/ndialog.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:walletconnect_flutter_v2/walletconnect_flutter_v2.dart';
@@ -93,42 +97,42 @@ class WfHomeBloc extends Bloc<WfHomeEvent, WfHomeState> {
         wcClient.registerRequestHandler(
           chainId: caip2id,
           method: 'eth_sign',
-          handler: signHandler,
+          handler: (String topic, dynamic parameters) => signHandler(topic, parameters, caip2id),
         );
         wcClient.registerRequestHandler(
           chainId: caip2id,
           method: 'personal_sign',
-          handler: personalSignHandler,
+          handler: (String topic, dynamic parameters) => personalSignHandler(topic, parameters, caip2id),
         );
         wcClient.registerRequestHandler(
           chainId: caip2id,
           method: 'eth_signTypedData',
-          handler: signTypedDataHandler,
+          handler: (String topic, dynamic parameters) => signTypedDataHandler(topic, parameters, caip2id),
         );
         wcClient.registerRequestHandler(
           chainId: caip2id,
           method: 'eth_signTypedData_v3',
-          handler: signTypedDataHandler,
+          handler: (String topic, dynamic parameters) => signTypedDataHandler(topic, parameters, caip2id),
         );
         wcClient.registerRequestHandler(
           chainId: caip2id,
           method: 'eth_signTypedData_v4',
-          handler: signTypedDataHandler,
+          handler: (String topic, dynamic parameters) => signTypedDataHandler(topic, parameters, caip2id),
         );
         wcClient.registerRequestHandler(
           chainId: caip2id,
           method: 'eth_signTransaction',
-          handler: signTransactionHandler,
+          handler: (String topic, dynamic parameters) => signTransactionHandler(topic, parameters, caip2id),
         );
         wcClient.registerRequestHandler(
           chainId: caip2id,
           method: 'eth_sendTransaction',
-          handler: sendTransactionHandler,
+          handler: (String topic, dynamic parameters) => sendTransactionHandler(topic, parameters, caip2id),
         );
         wcClient.registerRequestHandler(
           chainId: caip2id,
           method: 'eth_sendRawTransaction',
-          handler: sendRawTransactionHandler,
+          handler: (String topic, dynamic parameters) => sendRawTransactionHandler(topic, parameters, caip2id),
         );
         wcClient.registerRequestHandler(
           chainId: caip2id,
@@ -339,8 +343,7 @@ class WfHomeBloc extends Bloc<WfHomeEvent, WfHomeState> {
         content: SizedBox(
           width: 200,
           height: 200,
-          child:
-              SingleChildScrollView(child: Text("Some requested chains is required but not supported currently:\n${notSupportedChains.join("\n")}")),
+          child: SingleChildScrollView(child: Text("Some requested chains is required but not supported currently:\n${notSupportedChains.join("\n")}")),
         ),
         actions: <Widget>[
           normalButton("Okay I know", () {
@@ -418,7 +421,7 @@ class WfHomeBloc extends Bloc<WfHomeEvent, WfHomeState> {
     );
   }
 
-  signHandler(String topic, dynamic parameters) async {
+  signHandler(String topic, dynamic parameters, String caip2Id) async {
     log.d("signRequestHandler-----start");
     log.d(topic);
     log.d(parameters.toString());
@@ -428,6 +431,7 @@ class WfHomeBloc extends Bloc<WfHomeEvent, WfHomeState> {
     // the client will automatically respond to the requester with a
     // JsonRpcError.invalidParams error
     final parsedResponse = parameters;
+    Uint8List result = hexToBytes(parsedResponse[1]);
 
     final String message = EthUtils.getUtf8Message(parameters[1]);
 
@@ -442,11 +446,11 @@ class WfHomeBloc extends Bloc<WfHomeEvent, WfHomeState> {
       context: navigatorKey.currentContext!,
       builder: (context) {
         return AlertDialog(
-          title: const Text('Sign Transaction'),
+          title: const Text('Sign'),
           content: SizedBox(
             width: 300,
             height: 350,
-            child: Text(parsedResponse.toString()),
+            child: SingleChildScrollView(child: Text(utf8.decode(result))),
           ),
           actions: [
             ElevatedButton(
@@ -488,7 +492,7 @@ class WfHomeBloc extends Bloc<WfHomeEvent, WfHomeState> {
     }
   }
 
-  personalSignHandler(String topic, dynamic parameters) async {
+  personalSignHandler(String topic, dynamic parameters, String caip2Id) async {
     log.d("personalSignHandler-----start");
     log.d(topic);
     log.d(parameters.toString());
@@ -499,17 +503,18 @@ class WfHomeBloc extends Bloc<WfHomeEvent, WfHomeState> {
     final String message = EthUtils.getUtf8Message(parameters[0]);
 
     final parsedResponse = parameters;
+    Uint8List result = hexToBytes(parsedResponse[0]);
 
     bool userApproved = await showDialog(
       // This is an example, you will have to make your own changes to make it work.
       context: navigatorKey.currentContext!,
       builder: (context) {
         return AlertDialog(
-          title: const Text('Sign Transaction'),
+          title: const Text('Personal Sign'),
           content: SizedBox(
             width: 300,
             height: 350,
-            child: Text(parsedResponse.toString()),
+            child: SingleChildScrollView(child: Text(utf8.decode(result))),
           ),
           actions: [
             ElevatedButton(
@@ -549,24 +554,26 @@ class WfHomeBloc extends Bloc<WfHomeEvent, WfHomeState> {
     }
   }
 
-  signTypedDataHandler(String topic, dynamic parameters) async {
+  signTypedDataHandler(String topic, dynamic parameters, String caip2Id) async {
     log.d("signTypedDataHandler-----start");
     log.d(topic);
     log.d(parameters.toString());
     log.d("signTypedDataHandler-----end");
 
     final parsedResponse = parameters;
+    String jsonTypedData = parsedResponse[1];
+    Map mapTypedData = json.decode(jsonTypedData);
 
     bool userApproved = await showDialog(
       // This is an example, you will have to make your own changes to make it work.
       context: navigatorKey.currentContext!,
       builder: (context) {
         return AlertDialog(
-          title: const Text('Sign Transaction'),
+          title: const Text('Typed Data Sign'),
           content: SizedBox(
             width: 300,
             height: 350,
-            child: Text(parsedResponse.toString()),
+            child: SingleChildScrollView(child: JsonViewer(mapTypedData)),
           ),
           actions: [
             ElevatedButton(
@@ -599,7 +606,7 @@ class WfHomeBloc extends Bloc<WfHomeEvent, WfHomeState> {
     }
   }
 
-  signTransactionHandler(String topic, dynamic parameters) async {
+  signTransactionHandler(String topic, dynamic parameters, String caip2Id) async {
     log.d("signTransactionHandler-----start");
     log.d(topic);
     log.d(parameters.toString());
@@ -676,32 +683,38 @@ class WfHomeBloc extends Bloc<WfHomeEvent, WfHomeState> {
       data: (ethTransaction.data != null && ethTransaction.data != '0x') ? Uint8List.fromList(hex.decode(ethTransaction.data!)) : null,
     );
 
-    Web3Client ethClient = Web3Client('https://mainnet.infura.io/v3/51716d2096df4e73bec298680a51f0c5', http.Client());
-    try {
-      final Uint8List sig = await ethClient.signTransaction(
-        credentials,
-        transaction,
-      );
+    //获取到链的Enum
+    ChainEnum? chainEnum = chainEnumByCaip2Semantics(caip2Id);
+    ChainConfigBean? chainConfigBean = caip2Map[chainEnum];
+    if (chainConfigBean != null) {
+      Web3Client ethClient = Web3Client(chainConfigBean.rpcUrl!, http.Client());
+      try {
+        final Uint8List sig = await ethClient.signTransaction(
+          credentials,
+          transaction,
+        );
 
-      // Sign the transaction
-      final String signedTx = hex.encode(sig);
+        // Sign the transaction
+        final String signedTx = hex.encode(sig);
 
-      // Return the signed transaction as a hexadecimal string
-      return '0x$signedTx';
-    } catch (e) {
-      print(e);
-      return 'Failed';
+        // Return the signed transaction as a hexadecimal string
+        return '0x$signedTx';
+      } catch (e) {
+        print(e);
+        return 'Failed';
+      }
     }
+    return 'Failed';
   }
 
-  sendTransactionHandler(String topic, dynamic parameters) async {
+  sendTransactionHandler(String topic, dynamic parameters, String caip2Id) async {
     log.d("sendTransactionHandler-----start");
     log.d(topic);
     log.d(parameters.toString());
     log.d("sendTransactionHandler-----end");
   }
 
-  sendRawTransactionHandler(String topic, dynamic parameters) async {
+  sendRawTransactionHandler(String topic, dynamic parameters, String caip2Id) async {
     log.d("sendRawTransactionHandler-----start");
     log.d(topic);
     log.d(parameters.toString());

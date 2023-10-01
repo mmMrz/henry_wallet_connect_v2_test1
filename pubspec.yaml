@@ -50,6 +50,9 @@ dependencies:
   expandable_text: ^2.3.0
   eth_sig_util: ^0.0.9
   convert: ^3.0.1
+  byte_util: ^3.0.0
+  hexdump: ^0.1.0
+  flutter_json_viewer2: ^1.0.2
 
 
 dev_dependencies:
