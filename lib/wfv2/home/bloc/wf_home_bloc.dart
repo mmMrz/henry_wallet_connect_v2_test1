@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:typed_data';
 
+import 'package:QRTest_v2_test1/entity/ukwc_transaction.dart';
 import 'package:QRTest_v2_test1/main.dart';
 import 'package:QRTest_v2_test1/utils/logger_utils.dart';
 import 'package:QRTest_v2_test1/utils/wallet/chain_enum.dart';
@@ -19,6 +20,7 @@ import 'package:walletconnect_flutter_v2/walletconnect_flutter_v2.dart';
 import 'package:qrscan/qrscan.dart' as scanner;
 import 'package:web3dart/crypto.dart';
 import 'package:web3dart/web3dart.dart';
+import 'package:http/http.dart' as http;
 
 part 'wf_home_event.dart';
 part 'wf_home_state.dart';
@@ -255,9 +257,15 @@ class WfHomeBloc extends Bloc<WfHomeEvent, WfHomeState> {
     // Then, scan the QR code and parse the URI, and pair with the dApp
     // On the first pairing, you will immediately receive onSessionProposal and onAuthRequest events.
 
-    log.d("开始准备连接");
+    log.d("开始准备连接:$wcUri");
     Uri uri = Uri.parse(wcUri);
-    pairing = await wcClient.pair(uri: uri);
+    try {
+      pairing = await wcClient.pair(uri: uri);
+    } on WalletConnectError catch (e) {
+      ScaffoldMessenger.of(navigatorKey.currentContext!).showSnackBar(SnackBar(
+        content: Text(e.message),
+      ));
+    }
   }
 
   //断开连接
@@ -599,6 +607,94 @@ class WfHomeBloc extends Bloc<WfHomeEvent, WfHomeState> {
     log.d(topic);
     log.d(parameters.toString());
     log.d("signTransactionHandler-----end");
+
+    final parsedResponse = parameters;
+
+    bool userApproved = await showDialog(
+      // This is an example, you will have to make your own changes to make it work.
+      context: navigatorKey.currentContext!,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Sign Transaction'),
+          content: SizedBox(
+            width: 300,
+            height: 350,
+            child: Text(parsedResponse.toString()),
+          ),
+          actions: [
+            ElevatedButton(
+              onPressed: () => Navigator.pop(context, true),
+              child: const Text('Accept'),
+            ),
+            ElevatedButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: const Text('Reject'),
+            ),
+          ],
+        );
+      },
+    );
+
+    // 3. Respond to the dApp based on user response
+    if (!userApproved) {
+      // Throw an error if the user rejects the request
+      throw Errors.getSdkError(Errors.USER_REJECTED_SIGN);
+    }
+
+    // Load the private key
+    EthPrivateKey credentials = WalletUtils.getInstance().credentials;
+
+    UKWCTransaction ethTransaction = UKWCTransaction.fromJson(
+      parameters[0],
+    );
+
+    // Construct a transaction from the EthereumTransaction object
+    final transaction = Transaction(
+      from: EthereumAddress.fromHex(ethTransaction.from),
+      to: EthereumAddress.fromHex(ethTransaction.to),
+      value: EtherAmount.fromBigInt(
+        EtherUnit.wei,
+        BigInt.tryParse(ethTransaction.value) ?? BigInt.zero,
+      ),
+      gasPrice: ethTransaction.gasPrice != null
+          ? EtherAmount.fromBigInt(
+              EtherUnit.wei,
+              BigInt.tryParse(ethTransaction.gasPrice!) ?? BigInt.zero,
+            )
+          : null,
+      maxFeePerGas: ethTransaction.maxFeePerGas != null
+          ? EtherAmount.fromBigInt(
+              EtherUnit.wei,
+              BigInt.tryParse(ethTransaction.maxFeePerGas!) ?? BigInt.zero,
+            )
+          : null,
+      maxPriorityFeePerGas: ethTransaction.maxPriorityFeePerGas != null
+          ? EtherAmount.fromBigInt(
+              EtherUnit.wei,
+              BigInt.tryParse(ethTransaction.maxPriorityFeePerGas!) ?? BigInt.zero,
+            )
+          : null,
+      maxGas: int.tryParse(ethTransaction.gasLimit ?? ''),
+      nonce: int.tryParse(ethTransaction.nonce ?? ''),
+      data: (ethTransaction.data != null && ethTransaction.data != '0x') ? Uint8List.fromList(hex.decode(ethTransaction.data!)) : null,
+    );
+
+    Web3Client ethClient = Web3Client('https://mainnet.infura.io/v3/51716d2096df4e73bec298680a51f0c5', http.Client());
+    try {
+      final Uint8List sig = await ethClient.signTransaction(
+        credentials,
+        transaction,
+      );
+
+      // Sign the transaction
+      final String signedTx = hex.encode(sig);
+
+      // Return the signed transaction as a hexadecimal string
+      return '0x$signedTx';
+    } catch (e) {
+      print(e);
+      return 'Failed';
+    }
   }
 
   sendTransactionHandler(String topic, dynamic parameters) async {
