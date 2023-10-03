@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:QRTest_v2_test1/bean/chain_config_bean.dart';
+import 'package:QRTest_v2_test1/entity/solana_sign_transaction/solana_sign_transaction.dart';
 import 'package:QRTest_v2_test1/entity/ukwc_transaction.dart';
 import 'package:QRTest_v2_test1/main.dart';
 import 'package:QRTest_v2_test1/utils/logger_utils.dart';
@@ -173,6 +174,17 @@ class WfHomeBloc extends Bloc<WfHomeEvent, WfHomeState> {
               return Errors.getSdkError(Errors.UNSUPPORTED_CHAINS);
             }
           },
+        );
+      } else if (caip2id != null && caip2id.startsWith("solana:")) {
+        wcClient.registerRequestHandler(
+          chainId: caip2id,
+          method: 'solana_signTransaction',
+          handler: (String topic, dynamic parameters) => solanaSignTransaction(topic, parameters, caip2id),
+        );
+        wcClient.registerRequestHandler(
+          chainId: caip2id,
+          method: 'solana_signMessage',
+          handler: (String topic, dynamic parameters) => solanaSignMessage(topic, parameters, caip2id),
         );
       }
     }
@@ -719,6 +731,30 @@ class WfHomeBloc extends Bloc<WfHomeEvent, WfHomeState> {
     log.d(topic);
     log.d(parameters.toString());
     log.d("sendRawTransactionHandler-----end");
+  }
+
+  solanaSignTransaction(String topic, dynamic parameters, String caip2Id) async {
+    log.d("solanaSignTransaction-----start");
+    log.d(topic);
+    log.d(parameters.toString());
+    log.d("solanaSignTransaction-----end");
+    SolanaSignTransaction solanaSignTransaction = SolanaSignTransaction.fromJson(parameters);
+
+    String? result = await WalletUtils.getInstance().solanaWalletUtils.signTransaction(solanaSignTransaction);
+    if (result != null) {
+      log.d("签名成功：$result");
+      return result;
+    } else {
+      log.d("签名失败");
+      return Errors.getSdkError(Errors.USER_REJECTED_SIGN);
+    }
+  }
+
+  solanaSignMessage(String topic, dynamic parameters, String caip2Id) async {
+    log.d("solanaSignMessage-----start");
+    log.d(topic);
+    log.d(parameters.toString());
+    log.d("solanaSignMessage-----end");
   }
 
   //签名请求处理

@@ -5,6 +5,15 @@ abstract class MyWalletEvent extends Equatable {
   const MyWalletEvent();
 }
 
+class SolanaWalletUpdated extends MyWalletEvent {
+  const SolanaWalletUpdated({required this.solanaAddress});
+
+  final String solanaAddress;
+
+  @override
+  List<Object?> get props => [solanaAddress];
+}
+
 class TronWalletUpdated extends MyWalletEvent {
   const TronWalletUpdated({required this.tronAddress});
 

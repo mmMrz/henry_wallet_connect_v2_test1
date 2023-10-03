@@ -1,8 +1,10 @@
+import 'package:QRTest_v2_test1/utils/wallet/wallet_utils.dart';
 import 'package:QRTest_v2_test1/wallet/my_wallet.dart';
 import 'package:QRTest_v2_test1/wfv2/home/wf_home.dart';
 import 'package:flutter/material.dart';
 import 'package:QRTest_v2_test1/wcv2/wc_home.dart';
 import 'package:QRTest_v2_test1/widget/button.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 
 void main() {
   runApp(const MyApp());
@@ -56,7 +58,32 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
   @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    updateInfo();
+  }
+
+  String? appName, packageName, version, buildNumber;
+
+  void updateInfo() async {
+    PackageInfo packageInfo = await PackageInfo.fromPlatform();
+
+    setState(() {
+      appName = packageInfo.appName;
+      packageName = packageInfo.packageName;
+      version = packageInfo.version;
+      buildNumber = packageInfo.buildNumber;
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
+    WalletUtils t1 = WalletUtils.getInstance();
+    print(t1.test);
+    t1.test = "test2";
+    WalletUtils t2 = WalletUtils.getInstance();
+    print(t2.test);
     // This method is rerun every time setState is called, for instance as done
     // by the _incrementCounter method above.
     //
@@ -89,12 +116,14 @@ class _MyHomePageState extends State<MyHomePage> {
               );
             }),
             const SizedBox(height: 20),
-            normalButton("Wallet_Connect_V2", () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => const WCHome()),
-              );
-            }),
+            // normalButton("Wallet_Connect_V2", () {
+            //   Navigator.push(
+            //     context,
+            //     MaterialPageRoute(builder: (context) => const WCHome()),
+            //   );
+            // }),
+            const SizedBox(height: 60),
+            Text("version: $version ($buildNumber)"),
           ],
         ),
       ),

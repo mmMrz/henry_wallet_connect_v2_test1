@@ -6,6 +6,7 @@ import 'package:logger/logger.dart';
 import 'package:path_provider/path_provider.dart';
 
 Future<String?> createDirectory() async {
+  return null;
   // final Directory directory = await getApplicationDocumentsDirectory();
 
   final Directory? directory = await getExternalStorageDirectory();

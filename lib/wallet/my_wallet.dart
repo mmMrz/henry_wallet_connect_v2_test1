@@ -1,3 +1,4 @@
+import 'package:QRTest_v2_test1/utils/wallet/chain_enum.dart';
 import 'package:QRTest_v2_test1/utils/wallet/wallet_utils.dart';
 import 'package:QRTest_v2_test1/wallet/bloc/my_wallet_bloc.dart';
 import 'package:flutter/material.dart';
@@ -23,6 +24,7 @@ class MyWalletPage extends StatelessWidget {
           bloc.loadBitcoinBech32Wallet();
           bloc.loadEthereumWallet();
           bloc.loadTronWallet();
+          bloc.loadSolanaWallet();
 
           final endTime = DateTime.now().millisecondsSinceEpoch;
           final difference = endTime - startTime;
@@ -44,6 +46,13 @@ class MyWalletView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    String supportedChains = "";
+    caip2Map.values.forEach((element) {
+      if (element.caip2Id!.startsWith("eip155")) {
+        supportedChains += "${element.name},";
+      }
+    });
+    supportedChains += "Solana";
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -58,6 +67,7 @@ class MyWalletView extends StatelessWidget {
             builder: (context, state) {
               return Text(
                 state.bitcoinAddress ?? 'Loading...',
+                style: const TextStyle(color: Colors.green),
               );
             },
           ),
@@ -68,16 +78,18 @@ class MyWalletView extends StatelessWidget {
             builder: (context, state) {
               return Text(
                 state.bitcoinBech32Address ?? 'Loading...',
+                style: const TextStyle(color: Colors.green),
               );
             },
           ),
           const Text(
-            'Ethereum Address',
+            'EVM compatible Address',
           ),
           BlocBuilder<MyWalletBloc, MyWalletState>(
             builder: (context, state) {
               return Text(
                 state.ethereumAddress ?? 'Loading...',
+                style: const TextStyle(color: Colors.green),
               );
             },
           ),
@@ -88,8 +100,26 @@ class MyWalletView extends StatelessWidget {
             builder: (context, state) {
               return Text(
                 state.tronAddress ?? 'Loading...',
+                style: const TextStyle(color: Colors.green),
               );
             },
+          ),
+          const Text(
+            'Solana Address',
+          ),
+          BlocBuilder<MyWalletBloc, MyWalletState>(
+            builder: (context, state) {
+              return Text(
+                state.solanaAddress ?? 'Loading...',
+                style: const TextStyle(color: Colors.green),
+              );
+            },
+          ),
+          const Text("Supported Chains"),
+          Text(
+            supportedChains,
+            style: const TextStyle(color: Colors.green),
+            textAlign: TextAlign.center,
           ),
         ],
       ),

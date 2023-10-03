@@ -16,7 +16,7 @@ class WFV2Client {
     wcClient = await Web3Wallet.createInstance(
       projectId: '602617b1157a2c68b1afc1b97d6ffd45',
       metadata: const PairingMetadata(
-        name: 'HenryWCV2Test1',
+        name: 'MetaMask',
         description: 'Henry Wallet Connect V2 Test 1',
         url: 'https://walletconnect.com',
         icons: ['https://avatars.githubusercontent.com/u/37784886'],

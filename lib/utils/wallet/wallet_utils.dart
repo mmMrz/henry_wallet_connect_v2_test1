@@ -2,13 +2,14 @@ import 'dart:math';
 import 'dart:typed_data';
 
 import 'package:QRTest_v2_test1/utils/logger_utils.dart';
+import 'package:QRTest_v2_test1/utils/wallet/solana/solana_wallet_utils.dart';
 import 'package:web3dart/crypto.dart';
 import 'package:web3dart/web3dart.dart';
 // import 'package:wallet/wallet.dart' as wallet;
 
 import 'chain_enum.dart';
 
-const mnemonicStr = "later,miss,mobile,under,canal,simple,vast,ladder,clinic,arrest,guess,exhaust";
+// const mnemonicStr = "later,miss,mobile,under,canal,simple,vast,ladder,clinic,arrest,guess,exhaust";
 
 class WalletUtils {
   static WalletUtils? _instance;
@@ -17,14 +18,17 @@ class WalletUtils {
     _instance ??= WalletUtils._();
     return _instance!;
   }
+  String test = "test";
 
   late EthPrivateKey credentials;
+  late SolanaWalletUtils solanaWalletUtils;
 
   WalletUtils._() {
     credentials = EthPrivateKey.fromHex("300851edb635b2dbb2d4e70615444925afeb60bf95c19365aff88740e09d7345");
-
+    solanaWalletUtils = SolanaWalletUtils.getInstance();
     // In either way, the library can derive the public key and the address
     // from a private key:
+
     var address = credentials.address;
 
     log.d(address.hex);
@@ -73,6 +77,10 @@ class WalletUtils {
       case ChainEnum.tron:
         publicKey = "wallet.tron.createPublicKey(privateKey)";
         break;
+      case ChainEnum.solana:
+      case ChainEnum.solanatestnet:
+        publicKey = solanaWalletUtils.getPublicKey() ?? "please retry";
+        break;
       default:
         publicKey = bytesToHex(credentials.encodedPublicKey);
     }
@@ -117,6 +125,13 @@ class WalletUtils {
         break;
       case ChainEnum.tron:
         address = "wallet.tron.createAddress(publicKey)";
+        break;
+      case ChainEnum.solana:
+      case ChainEnum.solanatestnet:
+        address = solanaWalletUtils.getAddress() ?? "please retry";
+        if (address == "please retry") {
+          address = solanaWalletUtils.getAddress() ?? "please retry";
+        }
         break;
       default:
         address = credentials.address.hex;
