@@ -78,23 +78,26 @@ class SolanaWalletUtils {
     //   feePayer: source.publicKey,
     // );
     //CompiledMessage到这里为止取到了
-    final sign = await source?.signMessage(message: message, recentBlockhash: solanaSignTransaction.recentBlockhash);
+    // final sign = await source?.signMessage(message: message, recentBlockhash: solanaSignTransaction.recentBlockhash);
+    // if (sign == null) {
+    //   return null;
+    // }
+    // String signature = sign.signatures.first.toBase58();
+    // return signature;
 
+    final sign = await source?.sign(compiledMessage.toByteArray());
     if (sign == null) {
       return null;
     }
-    String signature = sign.signatures.first.toBase58();
-    return signature;
-
-    // final pubkeyBytes = source?.publicKey.bytes;
-    // final sigBytes = sign.bytes;
-    // final tx = SignedTx(compiledMessage: compiledMessage, signatures: [
-    //   cryptography.Signature(
-    //     sigBytes,
-    //     publicKey: cryptography.SimplePublicKey(pubkeyBytes!, type: cryptography.KeyPairType.ed25519),
-    //   ),
-    // ]);
-    // return base58encode(tx.toByteArray().toList());
+    final pubkeyBytes = source?.publicKey.bytes;
+    final sigBytes = sign.bytes;
+    final tx = SignedTx(compiledMessage: compiledMessage, signatures: [
+      cryptography.Signature(
+        sigBytes,
+        publicKey: cryptography.SimplePublicKey(pubkeyBytes!, type: cryptography.KeyPairType.ed25519),
+      ),
+    ]);
+    return base58encode(tx.toByteArray().toList());
 
     // final SignedTx signedTx = SignedTx(
     //   signatures: [sign],
