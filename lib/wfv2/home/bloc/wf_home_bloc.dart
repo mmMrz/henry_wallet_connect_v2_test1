@@ -740,6 +740,39 @@ class WfHomeBloc extends Bloc<WfHomeEvent, WfHomeState> {
     log.d(topic);
     log.d(parameters.toString());
     log.d("solanaSignTransaction-----end");
+
+    // String jsonTypedData = parameters;
+    Map mapTypedData = parameters;
+
+    bool userApproved = await showDialog(
+      // This is an example, you will have to make your own changes to make it work.
+      context: navigatorKey.currentContext!,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Solana Sign Transaction'),
+          content: SizedBox(
+            width: 300,
+            height: 350,
+            child: SingleChildScrollView(child: JsonViewer(mapTypedData)),
+          ),
+          actions: [
+            ElevatedButton(
+              onPressed: () => Navigator.pop(context, true),
+              child: const Text('Accept'),
+            ),
+            ElevatedButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: const Text('Reject'),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (!userApproved) {
+      throw Errors.getSdkError(Errors.USER_REJECTED_SIGN);
+    }
+
     SolanaSignTransaction solanaSignTransaction = SolanaSignTransaction.fromJson(parameters);
 
     String? result = await WalletUtils.getInstance().solanaWalletUtils.signTransaction(solanaSignTransaction);
@@ -757,6 +790,38 @@ class WfHomeBloc extends Bloc<WfHomeEvent, WfHomeState> {
     log.d(topic);
     log.d(parameters.toString());
     log.d("solanaSignMessage-----end");
+
+    Map mapTypedData = parameters;
+
+    bool userApproved = await showDialog(
+      // This is an example, you will have to make your own changes to make it work.
+      context: navigatorKey.currentContext!,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Solana Sign Message'),
+          content: SizedBox(
+            width: 300,
+            height: 350,
+            child: SingleChildScrollView(child: JsonViewer(mapTypedData)),
+          ),
+          actions: [
+            ElevatedButton(
+              onPressed: () => Navigator.pop(context, true),
+              child: const Text('Accept'),
+            ),
+            ElevatedButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: const Text('Reject'),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (!userApproved) {
+      throw Errors.getSdkError(Errors.USER_REJECTED_SIGN);
+    }
+
     SolanaSignMessage solanaSignMessage = SolanaSignMessage.fromJson(parameters);
 
     String? result = await WalletUtils.getInstance().solanaWalletUtils.signMessage(solanaSignMessage);
