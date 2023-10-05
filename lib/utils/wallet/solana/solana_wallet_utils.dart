@@ -1,5 +1,6 @@
 import 'dart:typed_data';
 
+import 'package:QRTest_v2_test1/entity/solana_sign_message/solana_sign_message.dart';
 import 'package:QRTest_v2_test1/entity/solana_sign_transaction/solana_sign_transaction.dart';
 import 'package:QRTest_v2_test1/utils/hex_utils.dart';
 import 'package:cryptography/cryptography.dart' as cryptography;
@@ -7,6 +8,7 @@ import 'package:QRTest_v2_test1/utils/number_utils.dart';
 import 'package:solana/base58.dart';
 import 'package:solana/encoder.dart';
 import 'package:solana/solana.dart';
+import 'package:web3dart/crypto.dart';
 
 class SolanaWalletUtils {
   static SolanaWalletUtils? _instance;
@@ -41,6 +43,43 @@ class SolanaWalletUtils {
     return source?.address;
   }
 
+  Future<String?> signMessage(SolanaSignMessage solanaSignMessage) async {
+// MemoInstruction/TokenInstruction/StakeInstruction
+
+    // final message = Message.only(MemoInstruction(signers: [Ed25519HDPublicKey.fromBase58(solanaSignMessage.pubkey)], memo: solanaSignMessage.message));
+    // // final message = Message.only(TokenInstruction())
+
+    // final recentBlockhash = (await solanaClient.rpcClient.getLatestBlockhash(commitment: Commitment.confirmed)).value;
+//X3CUgCGzyn43DTAbUKnTMDzcGWMooJT2hPSZinjfN1QUgVNYYfeoJ5zg6i4MYqYWB9kSiyHjTQA
+// DEqAF7ZP6n1aZBnxyGHfbbZR4bFxH3wmKJC8JhuVGYVZ
+
+    final sign = await source?.sign(base58decode(solanaSignMessage.message));
+    if (sign == null) {
+      return null;
+    }
+    String signature = base58encode(sign.bytes);
+    return signature;
+    // final instruction = SystemInstruction.transfer(
+    //   fundingAccount: source!.publicKey,
+    //   recipientAccount: source!.publicKey,
+    //   lamports: 1000000,
+    // );
+
+    // final message = Message.only(instruction);
+
+    // final compiledMessage = message.compileV0(
+    //   recentBlockhash: recentBlockhash.blockhash,
+    //   feePayer: source!.publicKey,
+    // );
+
+    // final sign = await source?.signMessage(message: message, recentBlockhash: recentBlockhash.blockhash);
+    // if (sign == null) {
+    //   return null;
+    // }
+    // String signature = sign.signatures.first.toBase58();
+    // return signature;
+  }
+
   Future<String?> signTransaction(SolanaSignTransaction solanaSignTransaction) async {
     // final compiledMessage = await getCompiledTransfersMessage(
     //   precision,
@@ -59,8 +98,8 @@ class SolanaWalletUtils {
       instructions.add(Instruction(programId: Ed25519HDPublicKey.fromBase58(element.programId), accounts: accountMetas, data: ByteArray(element.data)));
     }
 
-    Message message = Message(instructions: instructions);
-    CompiledMessage compiledMessage = message.compile(recentBlockhash: solanaSignTransaction.recentBlockhash, feePayer: Ed25519HDPublicKey.fromBase58(solanaSignTransaction.feePayer));
+    Message message = Message.only(instructions.first);
+    // CompiledMessage compiledMessage = message.compile(recentBlockhash: solanaSignTransaction.recentBlockhash, feePayer: Ed25519HDPublicKey.fromBase58(solanaSignTransaction.feePayer));
 
     //====
 
@@ -78,26 +117,28 @@ class SolanaWalletUtils {
     //   feePayer: source.publicKey,
     // );
     //CompiledMessage到这里为止取到了
-    // final sign = await source?.signMessage(message: message, recentBlockhash: solanaSignTransaction.recentBlockhash);
-    // if (sign == null) {
-    //   return null;
-    // }
-    // String signature = sign.signatures.first.toBase58();
-    // return signature;
+// source?.signMessage(message: message, recentBlockhash: recentBlockhash)
 
-    final sign = await source?.sign(compiledMessage.toByteArray());
+    final sign = await source?.signMessage(message: message, recentBlockhash: solanaSignTransaction.recentBlockhash);
     if (sign == null) {
       return null;
     }
-    final pubkeyBytes = source?.publicKey.bytes;
-    final sigBytes = sign.bytes;
-    final tx = SignedTx(compiledMessage: compiledMessage, signatures: [
-      cryptography.Signature(
-        sigBytes,
-        publicKey: cryptography.SimplePublicKey(pubkeyBytes!, type: cryptography.KeyPairType.ed25519),
-      ),
-    ]);
-    return base58encode(tx.toByteArray().toList());
+    String signature = sign.signatures.first.toBase58();
+    return signature;
+
+    // final sign = await source?.sign(compiledMessage.toByteArray());
+    // if (sign == null) {
+    //   return null;
+    // }
+    // final pubkeyBytes = source?.publicKey.bytes;
+    // final sigBytes = sign.bytes;
+    // final tx = SignedTx(compiledMessage: compiledMessage, signatures: [
+    //   cryptography.Signature(
+    //     sigBytes,
+    //     publicKey: cryptography.SimplePublicKey(pubkeyBytes!, type: cryptography.KeyPairType.ed25519),
+    //   ),
+    // ]);
+    // return base58encode(tx.toByteArray().toList());
 
     // final SignedTx signedTx = SignedTx(
     //   signatures: [sign],

@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:QRTest_v2_test1/bean/chain_config_bean.dart';
+import 'package:QRTest_v2_test1/entity/solana_sign_message/solana_sign_message.dart';
 import 'package:QRTest_v2_test1/entity/solana_sign_transaction/solana_sign_transaction.dart';
 import 'package:QRTest_v2_test1/entity/ukwc_transaction.dart';
 import 'package:QRTest_v2_test1/main.dart';
@@ -196,14 +197,15 @@ class WfHomeBloc extends Bloc<WfHomeEvent, WfHomeState> {
     // );
 
     wcClient.onSessionPing.subscribe((SessionPing? args) {
-      log.d(args?.id.toString());
-      log.d(args?.topic);
+      log.d("WC2:onSessionPing:$args");
+      log.d("id:${args?.id}");
+      log.d("topic:${args?.topic}");
     });
 
     wcClient.core.relayClient.onRelayClientMessage.subscribe((MessageEvent? args) {
       log.d("WC2:RelayClient:onRelayClientMessage:$args");
-      log.d(args?.message);
-      log.d(args?.topic);
+      log.d("message:${args?.message}");
+      log.d("topic:${args?.topic}");
     });
 
     // If you want to the library to handle Namespace validation automatically,
@@ -710,7 +712,7 @@ class WfHomeBloc extends Bloc<WfHomeEvent, WfHomeState> {
         final String signedTx = hex.encode(sig);
 
         // Return the signed transaction as a hexadecimal string
-        return '0x$signedTx';
+        return signedTx;
       } catch (e) {
         print(e);
         return 'Failed';
@@ -742,8 +744,8 @@ class WfHomeBloc extends Bloc<WfHomeEvent, WfHomeState> {
 
     String? result = await WalletUtils.getInstance().solanaWalletUtils.signTransaction(solanaSignTransaction);
     if (result != null) {
-      log.d("签名成功：$result");
-      return result;
+      log.d("签名成功(用户要拒绝)：$result");
+      return {"signature": result};
     } else {
       log.d("签名失败");
       return Errors.getSdkError(Errors.USER_REJECTED_SIGN);
@@ -755,6 +757,16 @@ class WfHomeBloc extends Bloc<WfHomeEvent, WfHomeState> {
     log.d(topic);
     log.d(parameters.toString());
     log.d("solanaSignMessage-----end");
+    SolanaSignMessage solanaSignMessage = SolanaSignMessage.fromJson(parameters);
+
+    String? result = await WalletUtils.getInstance().solanaWalletUtils.signMessage(solanaSignMessage);
+    if (result != null) {
+      log.d("签名成功：$result");
+      return {"signature": result};
+    } else {
+      log.d("签名失败");
+      return Errors.getSdkError(Errors.USER_REJECTED_SIGN);
+    }
   }
 
   //签名请求处理
