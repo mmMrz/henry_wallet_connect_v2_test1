@@ -12,7 +12,7 @@ part 'my_wallet_event.dart';
 part 'my_wallet_state.dart';
 
 class MyWalletBloc extends Bloc<MyWalletEvent, MyWalletState> {
-  MyWalletBloc() : super(const MyWalletState(solanaAddress: null, tronAddress: null, bitcoinAddress: null, bitcoinBech32Address: null, ethereumAddress: null)) {
+  MyWalletBloc() : super(const MyWalletState(cosmosAddress: null, solanaAddress: null, tronAddress: null, bitcoinAddress: null, bitcoinBech32Address: null, ethereumAddress: null)) {
     on<MyWalletEvent>((event, emit) {
       if (event is TronWalletUpdated) {
         emit(state.copyWith(tronAddress: event.tronAddress));
@@ -24,6 +24,8 @@ class MyWalletBloc extends Bloc<MyWalletEvent, MyWalletState> {
         emit(state.copyWith(ethereumAddress: event.ethereumAddress));
       } else if (event is SolanaWalletUpdated) {
         emit(state.copyWith(solanaAddress: event.solanaAddress));
+      } else if (event is CosmosWalletUpdated) {
+        emit(state.copyWith(solanaAddress: event.cosmosAddress));
       }
     });
   }
@@ -58,5 +60,11 @@ class MyWalletBloc extends Bloc<MyWalletEvent, MyWalletState> {
     final WalletUtils walletUtils = WalletUtils.getInstance();
     final String solanaAddress = walletUtils.getAddress(ChainEnum.solana);
     add(SolanaWalletUpdated(solanaAddress: solanaAddress));
+  }
+
+  loadCosmosWallet() {
+    final WalletUtils walletUtils = WalletUtils.getInstance();
+    final String cosmosAddress = walletUtils.getAddress(ChainEnum.cosmos);
+    add(SolanaWalletUpdated(solanaAddress: cosmosAddress));
   }
 }

@@ -115,6 +115,17 @@ class MyWalletView extends StatelessWidget {
               );
             },
           ),
+          const Text(
+            'Cosmos Address',
+          ),
+          BlocBuilder<MyWalletBloc, MyWalletState>(
+            builder: (context, state) {
+              return Text(
+                state.cosmosAddress ?? 'Loading...',
+                style: const TextStyle(color: Colors.green),
+              );
+            },
+          ),
           const Text("Supported Chains"),
           Text(
             supportedChains,

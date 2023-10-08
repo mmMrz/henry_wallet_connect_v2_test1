@@ -2,6 +2,7 @@ import 'dart:math';
 import 'dart:typed_data';
 
 import 'package:QRTest_v2_test1/utils/logger_utils.dart';
+import 'package:QRTest_v2_test1/utils/wallet/cosmos/cosmos_wallet_utils.dart';
 import 'package:QRTest_v2_test1/utils/wallet/solana/solana_wallet_utils.dart';
 import 'package:web3dart/crypto.dart';
 import 'package:web3dart/web3dart.dart';
@@ -81,6 +82,10 @@ class WalletUtils {
       case ChainEnum.solanatestnet:
         publicKey = solanaWalletUtils.getPublicKey() ?? "please retry";
         break;
+      case ChainEnum.cosmos:
+      case ChainEnum.cosmostheta:
+        publicKey = cosmosWallet.ecPublicKey.toString();
+        break;
       default:
         publicKey = bytesToHex(credentials.encodedPublicKey);
     }
@@ -132,6 +137,10 @@ class WalletUtils {
         if (address == "please retry") {
           address = solanaWalletUtils.getAddress() ?? "please retry";
         }
+        break;
+      case ChainEnum.cosmos:
+      case ChainEnum.cosmostheta:
+        address = cosmosWallet.bech32Address;
         break;
       default:
         address = credentials.address.hex;

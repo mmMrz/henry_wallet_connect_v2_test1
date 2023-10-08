@@ -8,6 +8,7 @@ import 'package:QRTest_v2_test1/entity/ukwc_transaction.dart';
 import 'package:QRTest_v2_test1/main.dart';
 import 'package:QRTest_v2_test1/utils/logger_utils.dart';
 import 'package:QRTest_v2_test1/utils/wallet/chain_enum.dart';
+import 'package:QRTest_v2_test1/utils/wallet/cosmos/cosmos_wallet_utils.dart';
 import 'package:QRTest_v2_test1/utils/wallet/eth_utils.dart';
 import 'package:QRTest_v2_test1/utils/wallet/wallet_utils.dart';
 import 'package:QRTest_v2_test1/wfv2/client/wc_client.dart';
@@ -186,6 +187,17 @@ class WfHomeBloc extends Bloc<WfHomeEvent, WfHomeState> {
           chainId: caip2id,
           method: 'solana_signMessage',
           handler: (String topic, dynamic parameters) => solanaSignMessage(topic, parameters, caip2id),
+        );
+      } else if (caip2id != null && caip2id.startsWith("cosmos:")) {
+        wcClient.registerRequestHandler(
+          chainId: caip2id,
+          method: 'cosmos_signDirect',
+          handler: (String topic, dynamic parameters) => cosmosSignDirect(topic, parameters, caip2id),
+        );
+        wcClient.registerRequestHandler(
+          chainId: caip2id,
+          method: 'cosmos_signAmino',
+          handler: (String topic, dynamic parameters) => cosmosSignAmino(topic, parameters, caip2id),
         );
       }
     }
@@ -832,6 +844,28 @@ class WfHomeBloc extends Bloc<WfHomeEvent, WfHomeState> {
       log.d("签名失败");
       return Errors.getSdkError(Errors.USER_REJECTED_SIGN);
     }
+  }
+
+  cosmosSignDirect(String topic, dynamic parameters, String caip2Id) async {
+    log.d("cosmosSignDirect-----start");
+    log.d(topic);
+    log.d(parameters.toString());
+    log.d("cosmosSignDirect-----end");
+    String bodyBytesStr = parameters["signDoc"]["bodyBytes"];
+    Uint8List bodyBytes = hexToBytes(bodyBytesStr);
+    Uint8List signed = cosmosWallet.sign(bodyBytes);
+    String result = base64Encode(signed);
+    String result2 = bytesToHex(signed);
+    log.d("签名成功：$result");
+    log.d("签名成功2：$result2");
+    return {"signature": result};
+  }
+
+  cosmosSignAmino(String topic, dynamic parameters, String caip2Id) async {
+    log.d("cosmosSignAmino-----start");
+    log.d(topic);
+    log.d(parameters.toString());
+    log.d("cosmosSignAmino-----end");
   }
 
   //签名请求处理
