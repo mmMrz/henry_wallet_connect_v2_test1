@@ -42,7 +42,7 @@ class UKWCTransaction {
         gas: json['gas'] as String?,
         gasLimit: json['gasLimit'] as String?,
         value: json['value'] as String,
-        data: json['data'] as String?,
+        data: (json['data'] as String?) == null ? null : (json['data'] as String).replaceAll("0x", "").replaceAll("0X", ""),
       );
 
   Map<String, dynamic> walletConnectTransactionToJson(UKWCTransaction instance) => <String, dynamic>{

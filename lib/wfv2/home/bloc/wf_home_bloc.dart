@@ -18,7 +18,9 @@ import 'package:convert/convert.dart';
 import 'package:equatable/equatable.dart';
 import 'package:eth_sig_util/eth_sig_util.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:flutter_json_viewer2/flutter_json_viewer.dart';
 import 'package:hexdump/hexdump.dart';
 import 'package:ndialog/ndialog.dart';
@@ -56,6 +58,10 @@ class WfHomeBloc extends Bloc<WfHomeEvent, WfHomeState> {
     wcClient = WFV2Client.getInstance().wcClient;
 
     refreshActiveSession();
+
+    if (wcClient.onSessionProposal.subscriberCount > 0) {
+      return;
+    }
 
     //注册一个事件监听,这是当请求来临时的回调
     // For a wallet, setup the proposal handler that will display the proposal to the user after the URI has been scanned.
@@ -201,7 +207,7 @@ class WfHomeBloc extends Bloc<WfHomeEvent, WfHomeState> {
         );
       }
     }
-// https: //polygon-rpc.com
+    // https: //polygon-rpc.com
     // wcClient?.registerRequestHandler(
     //   chainId: 'eip155:1',
     //   method: 'eth_sendTransaction',
@@ -671,6 +677,7 @@ class WfHomeBloc extends Bloc<WfHomeEvent, WfHomeState> {
       throw Errors.getSdkError(Errors.USER_REJECTED_SIGN);
     }
 
+    EasyLoading.show(status: 'Signing');
     // Load the private key
     EthPrivateKey credentials = WalletUtils.getInstance().credentials;
 
@@ -718,18 +725,22 @@ class WfHomeBloc extends Bloc<WfHomeEvent, WfHomeState> {
         final Uint8List sig = await ethClient.signTransaction(
           credentials,
           transaction,
+          chainId: int.tryParse(caip2Id.replaceAll("eip155:", "")),
         );
 
         // Sign the transaction
         final String signedTx = hex.encode(sig);
 
+        EasyLoading.showSuccess("Sign Success");
         // Return the signed transaction as a hexadecimal string
         return signedTx;
       } catch (e) {
         print(e);
+        EasyLoading.showError(e.toString());
         return 'Failed';
       }
     }
+    EasyLoading.showError("Sign Failed");
     return 'Failed';
   }
 
@@ -738,6 +749,33 @@ class WfHomeBloc extends Bloc<WfHomeEvent, WfHomeState> {
     log.d(topic);
     log.d(parameters.toString());
     log.d("sendTransactionHandler-----end");
+
+    String signResult = await signTransactionHandler(topic, parameters, caip2Id);
+    if (signResult == 'Failed') {
+      return 'Failed';
+    }
+    EasyLoading.show(status: 'Sending');
+
+    log.d("准备发送交易:$signResult");
+    //获取到链的Enum
+    ChainEnum? chainEnum = chainEnumByCaip2Semantics(caip2Id);
+    ChainConfigBean? chainConfigBean = caip2Map[chainEnum];
+    if (chainConfigBean != null) {
+      Web3Client ethClient = Web3Client(chainConfigBean.rpcUrl!, http.Client());
+      try {
+        final String txHash = await ethClient.sendRawTransaction(Uint8List.fromList(hex.decode(signResult)));
+        log.d("交易发送成功:$txHash");
+        Clipboard.setData(ClipboardData(text: txHash));
+        EasyLoading.showSuccess("Send Success\nHASH has been copy to clipboard");
+        return txHash;
+      } catch (e) {
+        log.d("交易发送失败:$e");
+        EasyLoading.showError(e.toString());
+        return e.toString();
+      }
+    }
+    EasyLoading.showError("Send Failed");
+    return Errors.getSdkError(Errors.USER_REJECTED_SIGN);
   }
 
   sendRawTransactionHandler(String topic, dynamic parameters, String caip2Id) async {
