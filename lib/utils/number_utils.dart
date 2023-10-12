@@ -7,18 +7,14 @@ import 'package:rational/rational.dart';
 
 class NumberUtils {
   static Decimal addPrecision(String numStr, int precision) {
-    if (numStr == null || numStr == "" || numStr == "0")
-      return Decimal.fromInt(0);
-    Rational rational =
-        Decimal.parse(numStr) / Decimal.fromInt(10).pow(precision).toDecimal();
+    if (numStr == null || numStr == "" || numStr == "0") return Decimal.fromInt(0);
+    Rational rational = Decimal.parse(numStr) / Decimal.fromInt(10).pow(precision).toDecimal();
     Decimal result = rational.toDecimal();
     return result;
   }
 
   static BigInt removePrecision(String numStr, int precision) {
-    BigInt result = BigInt.parse(
-        (Decimal.parse(numStr) * Decimal.fromInt(10).pow(precision).toDecimal())
-            .toString());
+    BigInt result = BigInt.parse((Decimal.parse(numStr) * Decimal.fromInt(10).pow(precision).toDecimal()).toString());
     return result;
   }
 
@@ -61,8 +57,7 @@ class NumberUtils {
   static BigInt ethToWei(String amount, int decimal) {
     double db = double.parse(amount) * pow(10, 4);
     int it = db.toInt();
-    BigInt bi = BigInt.from(it) *
-        BigInt.from(10).pow(decimal == null ? 14 : decimal - 4);
+    BigInt bi = BigInt.from(it) * BigInt.from(10).pow(decimal == null ? 14 : decimal - 4);
     return bi;
   }
 }
