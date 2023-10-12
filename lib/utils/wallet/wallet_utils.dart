@@ -1,6 +1,9 @@
 // Dart imports:
 
 // Package imports:
+import 'package:QRTest_v2_test1/utils/logger_utils.dart';
+import 'package:QRTest_v2_test1/utils/wallet/cosmos/cosmos_wallet_utils.dart';
+import 'package:QRTest_v2_test1/utils/wallet/solana/solana_wallet_utils.dart';
 import 'package:web3dart/crypto.dart';
 import 'package:web3dart/web3dart.dart';
 
@@ -26,8 +29,7 @@ class WalletUtils {
   late SolanaWalletUtils solanaWalletUtils;
 
   WalletUtils._() {
-    credentials = EthPrivateKey.fromHex(
-        "300851edb635b2dbb2d4e70615444925afeb60bf95c19365aff88740e09d7345");
+    credentials = EthPrivateKey.fromHex("300851edb635b2dbb2d4e70615444925afeb60bf95c19365aff88740e09d7345");
     solanaWalletUtils = SolanaWalletUtils.getInstance();
     // In either way, the library can derive the public key and the address
     // from a private key:
@@ -84,6 +86,10 @@ class WalletUtils {
       case ChainEnum.solanatestnet:
         publicKey = solanaWalletUtils.getPublicKey() ?? "please retry";
         break;
+      case ChainEnum.cosmos:
+      case ChainEnum.cosmostheta:
+        publicKey = cosmosWallet.ecPublicKey.toString();
+        break;
       default:
         publicKey = bytesToHex(credentials.encodedPublicKey);
     }
@@ -135,6 +141,10 @@ class WalletUtils {
         if (address == "please retry") {
           address = solanaWalletUtils.getAddress() ?? "please retry";
         }
+        break;
+      case ChainEnum.cosmos:
+      case ChainEnum.cosmostheta:
+        address = cosmosWallet.bech32Address;
         break;
       default:
         address = credentials.address.hex;

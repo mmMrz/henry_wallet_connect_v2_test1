@@ -9,12 +9,14 @@ import 'package:QRTest_v2_test1/utils/wallet/wallet_utils.dart';
 import 'package:QRTest_v2_test1/wallet/my_wallet.dart';
 import 'package:QRTest_v2_test1/wfv2/home/wf_home.dart';
 import 'package:QRTest_v2_test1/widget/button.dart';
+import 'package:flutter_easyloading/flutter_easyloading.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 
 void main() {
   runApp(const MyApp());
 }
 
-final GlobalKey<NavigatorState> navigatorKey = new GlobalKey<NavigatorState>();
+final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
@@ -23,6 +25,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      builder: EasyLoading.init(),
       title: 'Flutter Demo',
       navigatorKey: navigatorKey,
       theme: ThemeData(
@@ -65,6 +68,7 @@ class _MyHomePageState extends State<MyHomePage> {
   void initState() {
     // TODO: implement initState
     super.initState();
+    EasyLoading.instance.maskType = EasyLoadingMaskType.black;
     updateInfo();
   }
 
@@ -107,10 +111,11 @@ class _MyHomePageState extends State<MyHomePage> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
             normalButton("Show My Wallet", () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => const MyWalletPage()),
-              );
+              EasyLoading.show(status: 'Sending');
+              // Navigator.push(
+              //   context,
+              //   MaterialPageRoute(builder: (context) => const MyWalletPage()),
+              // );
             }),
             const SizedBox(height: 20),
             normalButton("WalletConnect_V2", () {

@@ -21,15 +21,34 @@ import 'package:web3dart/web3dart.dart';
 
 // Project imports:
 import 'package:QRTest_v2_test1/bean/chain_config_bean.dart';
+import 'package:QRTest_v2_test1/entity/solana_sign_message/solana_sign_message.dart';
 import 'package:QRTest_v2_test1/entity/solana_sign_transaction/solana_sign_transaction.dart';
 import 'package:QRTest_v2_test1/entity/ukwc_transaction.dart';
 import 'package:QRTest_v2_test1/main.dart';
 import 'package:QRTest_v2_test1/utils/logger_utils.dart';
 import 'package:QRTest_v2_test1/utils/wallet/chain_enum.dart';
+import 'package:QRTest_v2_test1/utils/wallet/cosmos/cosmos_wallet_utils.dart';
 import 'package:QRTest_v2_test1/utils/wallet/eth_utils.dart';
 import 'package:QRTest_v2_test1/utils/wallet/wallet_utils.dart';
 import 'package:QRTest_v2_test1/wfv2/client/wc_client.dart';
 import 'package:QRTest_v2_test1/widget/button.dart';
+import 'package:byte_util/byte_util.dart';
+import 'package:convert/convert.dart';
+import 'package:equatable/equatable.dart';
+import 'package:eth_sig_util/eth_sig_util.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_easyloading/flutter_easyloading.dart';
+import 'package:flutter_json_viewer2/flutter_json_viewer.dart';
+import 'package:hexdump/hexdump.dart';
+import 'package:ndialog/ndialog.dart';
+import 'package:permission_handler/permission_handler.dart';
+import 'package:walletconnect_flutter_v2/walletconnect_flutter_v2.dart';
+import 'package:qrscan/qrscan.dart' as scanner;
+import 'package:web3dart/crypto.dart';
+import 'package:web3dart/web3dart.dart';
+import 'package:http/http.dart' as http;
 
 part 'wf_home_event.dart';
 part 'wf_home_state.dart';
@@ -58,6 +77,10 @@ class WfHomeBloc extends Bloc<WfHomeEvent, WfHomeState> {
     wcClient = WFV2Client.getInstance().wcClient;
 
     refreshActiveSession();
+
+    if (wcClient.onSessionProposal.subscriberCount > 0) {
+      return;
+    }
 
     //注册一个事件监听,这是当请求来临时的回调
     // For a wallet, setup the proposal handler that will display the proposal to the user after the URI has been scanned.
@@ -190,9 +213,20 @@ class WfHomeBloc extends Bloc<WfHomeEvent, WfHomeState> {
           method: 'solana_signMessage',
           handler: (String topic, dynamic parameters) => solanaSignMessage(topic, parameters, caip2id),
         );
+      } else if (caip2id != null && caip2id.startsWith("cosmos:")) {
+        wcClient.registerRequestHandler(
+          chainId: caip2id,
+          method: 'cosmos_signDirect',
+          handler: (String topic, dynamic parameters) => cosmosSignDirect(topic, parameters, caip2id),
+        );
+        wcClient.registerRequestHandler(
+          chainId: caip2id,
+          method: 'cosmos_signAmino',
+          handler: (String topic, dynamic parameters) => cosmosSignAmino(topic, parameters, caip2id),
+        );
       }
     }
-// https: //polygon-rpc.com
+    // https: //polygon-rpc.com
     // wcClient?.registerRequestHandler(
     //   chainId: 'eip155:1',
     //   method: 'eth_sendTransaction',
@@ -200,14 +234,15 @@ class WfHomeBloc extends Bloc<WfHomeEvent, WfHomeState> {
     // );
 
     wcClient.onSessionPing.subscribe((SessionPing? args) {
-      log.d(args?.id.toString());
-      log.d(args?.topic);
+      log.d("WC2:onSessionPing:$args");
+      log.d("id:${args?.id}");
+      log.d("topic:${args?.topic}");
     });
 
     wcClient.core.relayClient.onRelayClientMessage.subscribe((MessageEvent? args) {
       log.d("WC2:RelayClient:onRelayClientMessage:$args");
-      log.d(args?.message);
-      log.d(args?.topic);
+      log.d("message:${args?.message}");
+      log.d("topic:${args?.topic}");
     });
 
     // If you want to the library to handle Namespace validation automatically,
@@ -662,6 +697,7 @@ class WfHomeBloc extends Bloc<WfHomeEvent, WfHomeState> {
       throw Errors.getSdkError(Errors.USER_REJECTED_SIGN);
     }
 
+    EasyLoading.show(status: 'Signing');
     // Load the private key
     EthPrivateKey credentials = WalletUtils.getInstance().credentials;
 
@@ -709,18 +745,22 @@ class WfHomeBloc extends Bloc<WfHomeEvent, WfHomeState> {
         final Uint8List sig = await ethClient.signTransaction(
           credentials,
           transaction,
+          chainId: int.tryParse(caip2Id.replaceAll("eip155:", "")),
         );
 
         // Sign the transaction
         final String signedTx = hex.encode(sig);
 
+        EasyLoading.showSuccess("Sign Success");
         // Return the signed transaction as a hexadecimal string
-        return '0x$signedTx';
+        return signedTx;
       } catch (e) {
         print(e);
+        EasyLoading.showError(e.toString());
         return 'Failed';
       }
     }
+    EasyLoading.showError("Sign Failed");
     return 'Failed';
   }
 
@@ -729,6 +769,33 @@ class WfHomeBloc extends Bloc<WfHomeEvent, WfHomeState> {
     log.d(topic);
     log.d(parameters.toString());
     log.d("sendTransactionHandler-----end");
+
+    String signResult = await signTransactionHandler(topic, parameters, caip2Id);
+    if (signResult == 'Failed') {
+      return 'Failed';
+    }
+    EasyLoading.show(status: 'Sending');
+
+    log.d("准备发送交易:$signResult");
+    //获取到链的Enum
+    ChainEnum? chainEnum = chainEnumByCaip2Semantics(caip2Id);
+    ChainConfigBean? chainConfigBean = caip2Map[chainEnum];
+    if (chainConfigBean != null) {
+      Web3Client ethClient = Web3Client(chainConfigBean.rpcUrl!, http.Client());
+      try {
+        final String txHash = await ethClient.sendRawTransaction(Uint8List.fromList(hex.decode(signResult)));
+        log.d("交易发送成功:$txHash");
+        Clipboard.setData(ClipboardData(text: txHash));
+        EasyLoading.showSuccess("Send Success\nHASH has been copy to clipboard");
+        return txHash;
+      } catch (e) {
+        log.d("交易发送失败:$e");
+        EasyLoading.showError(e.toString());
+        return e.toString();
+      }
+    }
+    EasyLoading.showError("Send Failed");
+    return Errors.getSdkError(Errors.USER_REJECTED_SIGN);
   }
 
   sendRawTransactionHandler(String topic, dynamic parameters, String caip2Id) async {
@@ -743,11 +810,44 @@ class WfHomeBloc extends Bloc<WfHomeEvent, WfHomeState> {
     log.d(topic);
     log.d(parameters.toString());
     log.d("solanaSignTransaction-----end");
+
+    // String jsonTypedData = parameters;
+    Map mapTypedData = parameters;
+
+    bool userApproved = await showDialog(
+      // This is an example, you will have to make your own changes to make it work.
+      context: navigatorKey.currentContext!,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Solana Sign Transaction'),
+          content: SizedBox(
+            width: 300,
+            height: 350,
+            child: SingleChildScrollView(child: JsonViewer(mapTypedData)),
+          ),
+          actions: [
+            ElevatedButton(
+              onPressed: () => Navigator.pop(context, true),
+              child: const Text('Accept'),
+            ),
+            ElevatedButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: const Text('Reject'),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (!userApproved) {
+      throw Errors.getSdkError(Errors.USER_REJECTED_SIGN);
+    }
+
     SolanaSignTransaction solanaSignTransaction = SolanaSignTransaction.fromJson(parameters);
 
     String? result = await WalletUtils.getInstance().solanaWalletUtils.signTransaction(solanaSignTransaction);
     if (result != null) {
-      log.d("签名成功：$result");
+      log.d("签名成功(用户要拒绝)：$result");
       return {"signature": result};
     } else {
       log.d("签名失败");
@@ -760,6 +860,70 @@ class WfHomeBloc extends Bloc<WfHomeEvent, WfHomeState> {
     log.d(topic);
     log.d(parameters.toString());
     log.d("solanaSignMessage-----end");
+
+    Map mapTypedData = parameters;
+
+    bool userApproved = await showDialog(
+      // This is an example, you will have to make your own changes to make it work.
+      context: navigatorKey.currentContext!,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Solana Sign Message'),
+          content: SizedBox(
+            width: 300,
+            height: 350,
+            child: SingleChildScrollView(child: JsonViewer(mapTypedData)),
+          ),
+          actions: [
+            ElevatedButton(
+              onPressed: () => Navigator.pop(context, true),
+              child: const Text('Accept'),
+            ),
+            ElevatedButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: const Text('Reject'),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (!userApproved) {
+      throw Errors.getSdkError(Errors.USER_REJECTED_SIGN);
+    }
+
+    SolanaSignMessage solanaSignMessage = SolanaSignMessage.fromJson(parameters);
+
+    String? result = await WalletUtils.getInstance().solanaWalletUtils.signMessage(solanaSignMessage);
+    if (result != null) {
+      log.d("签名成功：$result");
+      return {"signature": result};
+    } else {
+      log.d("签名失败");
+      return Errors.getSdkError(Errors.USER_REJECTED_SIGN);
+    }
+  }
+
+  cosmosSignDirect(String topic, dynamic parameters, String caip2Id) async {
+    log.d("cosmosSignDirect-----start");
+    log.d(topic);
+    log.d(parameters.toString());
+    log.d("cosmosSignDirect-----end");
+    String bodyBytesStr = parameters["signDoc"]["bodyBytes"];
+    Uint8List bodyBytes = hexToBytes(bodyBytesStr);
+    Uint8List signed = cosmosWallet.sign(bodyBytes);
+    String result = base64Encode(signed);
+    String result2 = bytesToHex(signed);
+    log.d("签名成功：$result");
+    log.d("签名成功2：$result2");
+    return {"signature": result};
+  }
+
+  cosmosSignAmino(String topic, dynamic parameters, String caip2Id) async {
+    log.d("cosmosSignAmino-----start");
+    log.d(topic);
+    log.d(parameters.toString());
+    log.d("cosmosSignAmino-----end");
   }
 
   //签名请求处理
