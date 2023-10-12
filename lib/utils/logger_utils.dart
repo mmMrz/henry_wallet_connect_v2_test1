@@ -116,27 +116,27 @@ class LoggerManager {
   }
 
   // Debug
-  void d(String? message) {
+  void d(dynamic message) {
     logger.d("WCLOG-->$message");
   }
 
   // verbose
-  void v(String? message) {
+  void v(dynamic message) {
     logger.v("WCLOG-->$message");
   }
 
   // info
-  void i(String? message) {
+  void i(dynamic message) {
     logger.i("WCLOG-->$message");
   }
 
   // warning
-  void w(String? message) {
+  void w(dynamic message) {
     logger.w("WCLOG-->$message");
   }
 
   // error
-  void e(String? message) {
+  void e(dynamic message) {
     logger.e("WCLOG-->$message");
   }
 
@@ -157,8 +157,7 @@ class LoggerManager {
         //比较相差的天数
         if (logDate != null) {
           final difference = currentDate.difference(logDate).inDays;
-          logger.d(
-              "deleteLogsOfBefore7Day logDate:$logDate, currentDate:$currentDate, difference:$difference");
+          logger.d("deleteLogsOfBefore7Day logDate:$logDate, currentDate:$currentDate, difference:$difference");
           if (difference > 7) {
             var file = File(x.path);
             // 删除文件
@@ -201,8 +200,7 @@ class FileOutput extends LogOutput {
   }
 
   String getCurrentDay() {
-    String currentDate = DateFormatter.formatDateTime(
-        dateTime: DateTime.now(), outputFormat: "yyyyMMdd");
+    String currentDate = DateFormatter.formatDateTime(dateTime: DateTime.now(), outputFormat: "yyyyMMdd");
     return currentDate;
   }
 
@@ -239,7 +237,10 @@ class FileOutput extends LogOutput {
 class MyFilter extends LogFilter {
   @override
   bool shouldLog(LogEvent event) {
-    return true;
+    if (event.level.index >= Logger.level.index) {
+      return true;
+    }
+    return false;
   }
 }
 
