@@ -1,7 +1,12 @@
 part of 'wf_home_bloc.dart';
 
 abstract class WfHomeState extends Equatable {
-  const WfHomeState({this.activeSessions, this.wcUri, this.args, this.showSessionProposalDialog, this.showNoCameraPermissionDialog});
+  const WfHomeState(
+      {this.activeSessions,
+      this.wcUri,
+      this.args,
+      this.showSessionProposalDialog,
+      this.showNoCameraPermissionDialog});
 
   final Map<String, SessionData>? activeSessions;
   final String? wcUri;
@@ -12,7 +17,13 @@ abstract class WfHomeState extends Equatable {
   final bool? showNoCameraPermissionDialog;
 
   @override
-  List<Object?> get props => [activeSessions, wcUri, args, showSessionProposalDialog, showNoCameraPermissionDialog];
+  List<Object?> get props => [
+        activeSessions,
+        wcUri,
+        args,
+        showSessionProposalDialog,
+        showNoCameraPermissionDialog
+      ];
 
   WfHomeState copyWith({
     Map<String, SessionData>? activeSessions,
@@ -44,8 +55,10 @@ class WfHomeStateInitial extends WfHomeState {
       activeSessions: activeSessions ?? this.activeSessions,
       wcUri: wcUri ?? this.wcUri,
       args: args ?? this.args,
-      showSessionProposalDialog: showSessionProposalDialog ?? this.showSessionProposalDialog,
-      showNoCameraPermissionDialog: showNoCameraPermissionDialog ?? this.showNoCameraPermissionDialog,
+      showSessionProposalDialog:
+          showSessionProposalDialog ?? this.showSessionProposalDialog,
+      showNoCameraPermissionDialog:
+          showNoCameraPermissionDialog ?? this.showNoCameraPermissionDialog,
     );
   }
 }

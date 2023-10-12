@@ -24,7 +24,8 @@ class UKWCTransaction {
     this.data,
   });
 
-  factory UKWCTransaction.fromJson(Map<String, dynamic> json) => _walletConnectTransactionFromJson(json);
+  factory UKWCTransaction.fromJson(Map<String, dynamic> json) =>
+      _walletConnectTransactionFromJson(json);
   Map<String, dynamic> toJson() => walletConnectTransactionToJson(this);
 
   @override
@@ -32,7 +33,9 @@ class UKWCTransaction {
     return 'WCEthereumTransaction(from: $from, to: $to, nonce: $nonce, gasPrice: $gasPrice, gas: $gas, gasLimit: $gasLimit, value: $value, data: $data)';
   }
 
-  static UKWCTransaction _walletConnectTransactionFromJson(Map<String, dynamic> json) => UKWCTransaction(
+  static UKWCTransaction _walletConnectTransactionFromJson(
+          Map<String, dynamic> json) =>
+      UKWCTransaction(
         from: json['from'] as String,
         to: json['to'] as String,
         nonce: json['nonce'] as String?,
@@ -45,7 +48,9 @@ class UKWCTransaction {
         data: json['data'] as String?,
       );
 
-  Map<String, dynamic> walletConnectTransactionToJson(UKWCTransaction instance) => <String, dynamic>{
+  Map<String, dynamic> walletConnectTransactionToJson(
+          UKWCTransaction instance) =>
+      <String, dynamic>{
         'from': instance.from,
         'to': instance.to,
         'nonce': instance.nonce,

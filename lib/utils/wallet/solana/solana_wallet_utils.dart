@@ -1,12 +1,12 @@
-import 'dart:typed_data';
+// Dart imports:
 
-import 'package:QRTest_v2_test1/entity/solana_sign_transaction/solana_sign_transaction.dart';
-import 'package:QRTest_v2_test1/utils/hex_utils.dart';
-import 'package:cryptography/cryptography.dart' as cryptography;
-import 'package:QRTest_v2_test1/utils/number_utils.dart';
-import 'package:solana/base58.dart';
+// Package imports:
 import 'package:solana/encoder.dart';
 import 'package:solana/solana.dart';
+
+// Project imports:
+import 'package:QRTest_v2_test1/entity/solana_sign_transaction/solana_sign_transaction.dart';
+import 'package:QRTest_v2_test1/utils/number_utils.dart';
 
 class SolanaWalletUtils {
   static SolanaWalletUtils? _instance;
@@ -25,9 +25,12 @@ class SolanaWalletUtils {
     source = await Ed25519HDKeyPair.fromMnemonic(mnemonic);
   }
 
-  final String mnemonic = 'nothing steak step patient peasant assist add coral tone harsh hint dilemma';
+  final String mnemonic =
+      'nothing steak step patient peasant assist add coral tone harsh hint dilemma';
 
-  final SolanaClient solanaClient = SolanaClient(rpcUrl: Uri.parse("https://api.devnet.solana.com"), websocketUrl: Uri.parse("wss://api.devnet.solana.com"));
+  final SolanaClient solanaClient = SolanaClient(
+      rpcUrl: Uri.parse("https://api.devnet.solana.com"),
+      websocketUrl: Uri.parse("wss://api.devnet.solana.com"));
 
   String getPrivateKey() {
     return source.toString();
@@ -41,7 +44,8 @@ class SolanaWalletUtils {
     return source?.address;
   }
 
-  Future<String?> signTransaction(SolanaSignTransaction solanaSignTransaction) async {
+  Future<String?> signTransaction(
+      SolanaSignTransaction solanaSignTransaction) async {
     // final compiledMessage = await getCompiledTransfersMessage(
     //   precision,
     //   amount,
@@ -54,13 +58,18 @@ class SolanaWalletUtils {
     for (var element in solanaSignTransaction.instructions) {
       List<AccountMeta> accountMetas = [];
       for (var key in element.keys) {
-        accountMetas.add(AccountMeta.writeable(pubKey: Ed25519HDPublicKey.fromBase58(key.pubkey), isSigner: key.isSigner));
+        accountMetas.add(AccountMeta.writeable(
+            pubKey: Ed25519HDPublicKey.fromBase58(key.pubkey),
+            isSigner: key.isSigner));
       }
-      instructions.add(Instruction(programId: Ed25519HDPublicKey.fromBase58(element.programId), accounts: accountMetas, data: ByteArray(element.data)));
+      instructions.add(Instruction(
+          programId: Ed25519HDPublicKey.fromBase58(element.programId),
+          accounts: accountMetas,
+          data: ByteArray(element.data)));
     }
 
     Message message = Message(instructions: instructions);
-    CompiledMessage compiledMessage = message.compile(recentBlockhash: solanaSignTransaction.recentBlockhash, feePayer: Ed25519HDPublicKey.fromBase58(solanaSignTransaction.feePayer));
+    // CompiledMessage compiledMessage = message.compile(recentBlockhash: solanaSignTransaction.recentBlockhash, feePayer: Ed25519HDPublicKey.fromBase58(solanaSignTransaction.feePayer));
 
     //====
 
@@ -78,26 +87,28 @@ class SolanaWalletUtils {
     //   feePayer: source.publicKey,
     // );
     //CompiledMessage到这里为止取到了
-    // final sign = await source?.signMessage(message: message, recentBlockhash: solanaSignTransaction.recentBlockhash);
-    // if (sign == null) {
-    //   return null;
-    // }
-    // String signature = sign.signatures.first.toBase58();
-    // return signature;
-
-    final sign = await source?.sign(compiledMessage.toByteArray());
+    final sign = await source?.signMessage(
+        message: message,
+        recentBlockhash: solanaSignTransaction.recentBlockhash);
     if (sign == null) {
       return null;
     }
-    final pubkeyBytes = source?.publicKey.bytes;
-    final sigBytes = sign.bytes;
-    final tx = SignedTx(compiledMessage: compiledMessage, signatures: [
-      cryptography.Signature(
-        sigBytes,
-        publicKey: cryptography.SimplePublicKey(pubkeyBytes!, type: cryptography.KeyPairType.ed25519),
-      ),
-    ]);
-    return base58encode(tx.toByteArray().toList());
+    String signature = sign.signatures.first.toBase58();
+    return signature;
+
+    // final sign = await source?.sign(compiledMessage.toByteArray());
+    // if (sign == null) {
+    //   return null;
+    // }
+    // final pubkeyBytes = source?.publicKey.bytes;
+    // final sigBytes = sign.bytes;
+    // final tx = SignedTx(compiledMessage: compiledMessage, signatures: [
+    //   cryptography.Signature(
+    //     sigBytes,
+    //     publicKey: cryptography.SimplePublicKey(pubkeyBytes!, type: cryptography.KeyPairType.ed25519),
+    //   ),
+    // ]);
+    // return base58encode(tx.toByteArray().toList());
 
     // final SignedTx signedTx = SignedTx(
     //   signatures: [sign],
@@ -170,8 +181,10 @@ class SolanaWalletUtils {
       ];
     } else {
       final mintPublicKey = Ed25519HDPublicKey.fromBase58(contractAddress);
-      final fromAssociatedTokenAddress = await findAssociatedTokenAddress(owner: fromPublicKey, mint: mintPublicKey);
-      final toAssociatedTokenAddress = await findAssociatedTokenAddress(owner: toPublicKey, mint: mintPublicKey);
+      final fromAssociatedTokenAddress = await findAssociatedTokenAddress(
+          owner: fromPublicKey, mint: mintPublicKey);
+      final toAssociatedTokenAddress = await findAssociatedTokenAddress(
+          owner: toPublicKey, mint: mintPublicKey);
 
       final tokenInstruction = TokenInstruction.transferChecked(
           amount: NumberUtils.removePrecision(amount, precision).toInt(),
@@ -181,23 +194,35 @@ class SolanaWalletUtils {
           destination: toAssociatedTokenAddress,
           owner: fromPublicKey);
 
-      final isAccountExist = await checkAccountIsExist(toAddress, contractAddress);
+      final isAccountExist =
+          await checkAccountIsExist(toAddress, contractAddress);
       if (isAccountExist) {
         instructions = [tokenInstruction];
       } else {
-        final associatedTokenAccountInstruction = AssociatedTokenAccountInstruction.createAccount(funder: fromPublicKey, address: toAssociatedTokenAddress, owner: toPublicKey, mint: mintPublicKey);
+        final associatedTokenAccountInstruction =
+            AssociatedTokenAccountInstruction.createAccount(
+                funder: fromPublicKey,
+                address: toAssociatedTokenAddress,
+                owner: toPublicKey,
+                mint: mintPublicKey);
         instructions = [associatedTokenAccountInstruction, tokenInstruction];
       }
     }
     Message message = Message(instructions: instructions);
-    final compiledMessage = message.compile(recentBlockhash: latestBlockhash.value.blockhash, feePayer: fromPublicKey);
+    final compiledMessage = message.compile(
+        recentBlockhash: latestBlockhash.value.blockhash,
+        feePayer: fromPublicKey);
 
     return compiledMessage;
   }
 
-  Future<bool> checkAccountIsExist(String address, String contractAddress) async {
-    final toAssociatedTokenAddress = await findAssociatedTokenAddress(owner: Ed25519HDPublicKey.fromBase58(address), mint: Ed25519HDPublicKey.fromBase58(contractAddress));
-    final toAssociatedTokenAccountInfo = await solanaClient.rpcClient.getAccountInfo(toAssociatedTokenAddress.toBase58());
+  Future<bool> checkAccountIsExist(
+      String address, String contractAddress) async {
+    final toAssociatedTokenAddress = await findAssociatedTokenAddress(
+        owner: Ed25519HDPublicKey.fromBase58(address),
+        mint: Ed25519HDPublicKey.fromBase58(contractAddress));
+    final toAssociatedTokenAccountInfo = await solanaClient.rpcClient
+        .getAccountInfo(toAssociatedTokenAddress.toBase58());
     if (toAssociatedTokenAccountInfo.value == null) {
       return false;
     }

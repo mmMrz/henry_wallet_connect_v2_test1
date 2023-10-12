@@ -1,6 +1,8 @@
+// Dart imports:
 import 'dart:convert';
 import 'dart:io';
 
+// Package imports:
 import 'package:date_formatter/date_formatter.dart';
 import 'package:logger/logger.dart';
 import 'package:path_provider/path_provider.dart';
@@ -155,7 +157,8 @@ class LoggerManager {
         //比较相差的天数
         if (logDate != null) {
           final difference = currentDate.difference(logDate).inDays;
-          logger.d("deleteLogsOfBefore7Day logDate:$logDate, currentDate:$currentDate, difference:$difference");
+          logger.d(
+              "deleteLogsOfBefore7Day logDate:$logDate, currentDate:$currentDate, difference:$difference");
           if (difference > 7) {
             var file = File(x.path);
             // 删除文件
@@ -198,7 +201,8 @@ class FileOutput extends LogOutput {
   }
 
   String getCurrentDay() {
-    String currentDate = DateFormatter.formatDateTime(dateTime: DateTime.now(), outputFormat: "yyyyMMdd");
+    String currentDate = DateFormatter.formatDateTime(
+        dateTime: DateTime.now(), outputFormat: "yyyyMMdd");
     return currentDate;
   }
 

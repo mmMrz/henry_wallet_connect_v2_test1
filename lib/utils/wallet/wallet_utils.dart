@@ -1,13 +1,15 @@
-import 'dart:math';
-import 'dart:typed_data';
+// Dart imports:
 
-import 'package:QRTest_v2_test1/utils/logger_utils.dart';
-import 'package:QRTest_v2_test1/utils/wallet/solana/solana_wallet_utils.dart';
+// Package imports:
 import 'package:web3dart/crypto.dart';
 import 'package:web3dart/web3dart.dart';
-// import 'package:wallet/wallet.dart' as wallet;
 
+// Project imports:
+import 'package:QRTest_v2_test1/utils/logger_utils.dart';
+import 'package:QRTest_v2_test1/utils/wallet/solana/solana_wallet_utils.dart';
 import 'chain_enum.dart';
+
+// import 'package:wallet/wallet.dart' as wallet;
 
 // const mnemonicStr = "later,miss,mobile,under,canal,simple,vast,ladder,clinic,arrest,guess,exhaust";
 
@@ -24,7 +26,8 @@ class WalletUtils {
   late SolanaWalletUtils solanaWalletUtils;
 
   WalletUtils._() {
-    credentials = EthPrivateKey.fromHex("300851edb635b2dbb2d4e70615444925afeb60bf95c19365aff88740e09d7345");
+    credentials = EthPrivateKey.fromHex(
+        "300851edb635b2dbb2d4e70615444925afeb60bf95c19365aff88740e09d7345");
     solanaWalletUtils = SolanaWalletUtils.getInstance();
     // In either way, the library can derive the public key and the address
     // from a private key:

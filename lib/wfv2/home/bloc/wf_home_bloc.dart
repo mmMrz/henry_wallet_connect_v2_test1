@@ -1,6 +1,25 @@
+// Dart imports:
 import 'dart:convert';
 import 'dart:typed_data';
 
+// Flutter imports:
+import 'package:flutter/material.dart';
+
+// Package imports:
+import 'package:convert/convert.dart';
+import 'package:equatable/equatable.dart';
+import 'package:eth_sig_util/eth_sig_util.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_json_viewer2/flutter_json_viewer.dart';
+import 'package:http/http.dart' as http;
+import 'package:ndialog/ndialog.dart';
+import 'package:permission_handler/permission_handler.dart';
+import 'package:qrscan/qrscan.dart' as scanner;
+import 'package:walletconnect_flutter_v2/walletconnect_flutter_v2.dart';
+import 'package:web3dart/crypto.dart';
+import 'package:web3dart/web3dart.dart';
+
+// Project imports:
 import 'package:QRTest_v2_test1/bean/chain_config_bean.dart';
 import 'package:QRTest_v2_test1/entity/solana_sign_transaction/solana_sign_transaction.dart';
 import 'package:QRTest_v2_test1/entity/ukwc_transaction.dart';
@@ -11,21 +30,6 @@ import 'package:QRTest_v2_test1/utils/wallet/eth_utils.dart';
 import 'package:QRTest_v2_test1/utils/wallet/wallet_utils.dart';
 import 'package:QRTest_v2_test1/wfv2/client/wc_client.dart';
 import 'package:QRTest_v2_test1/widget/button.dart';
-import 'package:byte_util/byte_util.dart';
-import 'package:convert/convert.dart';
-import 'package:equatable/equatable.dart';
-import 'package:eth_sig_util/eth_sig_util.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_json_viewer2/flutter_json_viewer.dart';
-import 'package:hexdump/hexdump.dart';
-import 'package:ndialog/ndialog.dart';
-import 'package:permission_handler/permission_handler.dart';
-import 'package:walletconnect_flutter_v2/walletconnect_flutter_v2.dart';
-import 'package:qrscan/qrscan.dart' as scanner;
-import 'package:web3dart/crypto.dart';
-import 'package:web3dart/web3dart.dart';
-import 'package:http/http.dart' as http;
 
 part 'wf_home_event.dart';
 part 'wf_home_state.dart';
@@ -355,7 +359,8 @@ class WfHomeBloc extends Bloc<WfHomeEvent, WfHomeState> {
         content: SizedBox(
           width: 200,
           height: 200,
-          child: SingleChildScrollView(child: Text("Some requested chains is required but not supported currently:\n${notSupportedChains.join("\n")}")),
+          child:
+              SingleChildScrollView(child: Text("Some requested chains is required but not supported currently:\n${notSupportedChains.join("\n")}")),
         ),
         actions: <Widget>[
           normalButton("Okay I know", () {
@@ -743,7 +748,7 @@ class WfHomeBloc extends Bloc<WfHomeEvent, WfHomeState> {
     String? result = await WalletUtils.getInstance().solanaWalletUtils.signTransaction(solanaSignTransaction);
     if (result != null) {
       log.d("签名成功：$result");
-      return result;
+      return {"signature": result};
     } else {
       log.d("签名失败");
       return Errors.getSdkError(Errors.USER_REJECTED_SIGN);

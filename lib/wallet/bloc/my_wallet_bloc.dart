@@ -1,18 +1,25 @@
-import 'dart:isolate';
+// Dart imports:
 
-import 'package:QRTest_v2_test1/utils/wallet/chain_enum.dart';
-import 'package:QRTest_v2_test1/utils/wallet/solana/solana_wallet_utils.dart';
-import 'package:QRTest_v2_test1/utils/wallet/wallet_utils.dart';
+// Package imports:
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:meta/meta.dart';
-import 'package:wallet/wallet.dart';
+
+// Project imports:
+import 'package:QRTest_v2_test1/utils/wallet/chain_enum.dart';
+import 'package:QRTest_v2_test1/utils/wallet/wallet_utils.dart';
 
 part 'my_wallet_event.dart';
 part 'my_wallet_state.dart';
 
 class MyWalletBloc extends Bloc<MyWalletEvent, MyWalletState> {
-  MyWalletBloc() : super(const MyWalletState(solanaAddress: null, tronAddress: null, bitcoinAddress: null, bitcoinBech32Address: null, ethereumAddress: null)) {
+  MyWalletBloc()
+      : super(const MyWalletState(
+            solanaAddress: null,
+            tronAddress: null,
+            bitcoinAddress: null,
+            bitcoinBech32Address: null,
+            ethereumAddress: null)) {
     on<MyWalletEvent>((event, emit) {
       if (event is TronWalletUpdated) {
         emit(state.copyWith(tronAddress: event.tronAddress));
@@ -38,7 +45,8 @@ class MyWalletBloc extends Bloc<MyWalletEvent, MyWalletState> {
 
   loadBitcoinBech32Wallet() {
     final WalletUtils walletUtils = WalletUtils.getInstance();
-    final String bitcoinBech32Address = walletUtils.getAddress(ChainEnum.bitcoinbech32);
+    final String bitcoinBech32Address =
+        walletUtils.getAddress(ChainEnum.bitcoinbech32);
     add(BitcoinBech32WalletUpdated(bitcoinBech32Address: bitcoinBech32Address));
   }
 

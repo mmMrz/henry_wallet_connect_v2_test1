@@ -1,6 +1,8 @@
+// Flutter imports:
 import 'package:flutter/material.dart';
 
-Widget normalButton(String title, Function callBack, {Color? color, double? width, double? height}) {
+Widget normalButton(String title, Function callBack,
+    {Color? color, double? width, double? height}) {
   return GestureDetector(
     onTap: () {
       callBack();

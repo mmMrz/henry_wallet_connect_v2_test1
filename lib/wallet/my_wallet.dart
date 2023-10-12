@@ -1,8 +1,12 @@
-import 'package:QRTest_v2_test1/utils/wallet/chain_enum.dart';
-import 'package:QRTest_v2_test1/utils/wallet/wallet_utils.dart';
-import 'package:QRTest_v2_test1/wallet/bloc/my_wallet_bloc.dart';
+// Flutter imports:
 import 'package:flutter/material.dart';
+
+// Package imports:
 import 'package:flutter_bloc/flutter_bloc.dart';
+
+// Project imports:
+import 'package:QRTest_v2_test1/utils/wallet/chain_enum.dart';
+import 'package:QRTest_v2_test1/wallet/bloc/my_wallet_bloc.dart';
 
 class MyWalletPage extends StatelessWidget {
   const MyWalletPage({super.key});

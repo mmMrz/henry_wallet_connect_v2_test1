@@ -1,15 +1,20 @@
-import 'dart:typed_data';
+// Dart imports:
 
-import 'package:QRTest_v2_test1/wfv2/dapp_detail_page/dapp_detail.dart';
-import 'package:QRTest_v2_test1/wfv2/home/bloc/wf_home_bloc.dart';
-import 'package:cached_network_image/cached_network_image.dart';
+// Flutter imports:
 import 'package:flutter/material.dart';
-import 'package:QRTest_v2_test1/widget/button.dart';
+
+// Package imports:
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:material_dialogs/dialogs.dart';
 import 'package:ndialog/ndialog.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:walletconnect_flutter_v2/walletconnect_flutter_v2.dart';
+
+// Project imports:
+import 'package:QRTest_v2_test1/wfv2/dapp_detail_page/dapp_detail.dart';
+import 'package:QRTest_v2_test1/wfv2/home/bloc/wf_home_bloc.dart';
+import 'package:QRTest_v2_test1/widget/button.dart';
 
 class WFHomePage extends StatelessWidget {
   const WFHomePage({super.key});
@@ -42,16 +47,23 @@ class WFHomeView extends StatelessWidget {
     return BlocListener<WfHomeBloc, WfHomeState>(
       listener: (context, state) {
         //NDialog是一个三方库，来自于pub.dev
-        if (state.showNoCameraPermissionDialog != null && state.showNoCameraPermissionDialog!) {
-          Dialogs.materialDialog(msg: 'You has been denied the camera, please granted it', title: "No permission", color: Colors.white, context: context, actions: [
-            normalButton("Cancel", color: Colors.blueGrey, () {
-              Navigator.of(context).pop();
-            }),
-            normalButton("Settings", () {
-              openAppSettings();
-            })
-          ]);
-        } else if (state.showSessionProposalDialog != null && state.showSessionProposalDialog!) {
+        if (state.showNoCameraPermissionDialog != null &&
+            state.showNoCameraPermissionDialog!) {
+          Dialogs.materialDialog(
+              msg: 'You has been denied the camera, please granted it',
+              title: "No permission",
+              color: Colors.white,
+              context: context,
+              actions: [
+                normalButton("Cancel", color: Colors.blueGrey, () {
+                  Navigator.of(context).pop();
+                }),
+                normalButton("Settings", () {
+                  openAppSettings();
+                })
+              ]);
+        } else if (state.showSessionProposalDialog != null &&
+            state.showSessionProposalDialog!) {
           NDialog(
             dialogStyle: DialogStyle(titleDivider: true),
             title: const Text(
@@ -61,18 +73,21 @@ class WFHomeView extends StatelessWidget {
             content: SizedBox(
               width: 200,
               height: 200,
-              child: SingleChildScrollView(child: Text(state.args!.params.toString())),
+              child: SingleChildScrollView(
+                  child: Text(state.args!.params.toString())),
             ),
             actions: <Widget>[
               normalButton("Cancel", () {
                 bloc.rejectSession(state.args!.id);
-                bloc.add(const OnSessionProposalEvent(args: null, showSessionProposalDialog: false));
+                bloc.add(const OnSessionProposalEvent(
+                    args: null, showSessionProposalDialog: false));
                 Navigator.of(context).pop();
               }, color: Colors.blueGrey),
               normalButton("Connect", () {
                 Navigator.of(context).pop();
                 bloc.approveSession(state.args!.id, state.args!.params);
-                bloc.add(const OnSessionProposalEvent(args: null, showSessionProposalDialog: false));
+                bloc.add(const OnSessionProposalEvent(
+                    args: null, showSessionProposalDialog: false));
               }),
             ],
           ).show(context);
@@ -95,13 +110,17 @@ class WFHomeView extends StatelessWidget {
                 SessionData value = state.activeSessions![key]!;
                 return GestureDetector(
                   onTap: () {
-                    Navigator.of(context).push(MaterialPageRoute(builder: (context) => DappDetailPage(sessionData: value)));
+                    Navigator.of(context).push(MaterialPageRoute(
+                        builder: (context) =>
+                            DappDetailPage(sessionData: value)));
                   },
                   child: ListTile(
                     leading: CachedNetworkImage(
                       width: 54,
                       height: 54,
-                      imageUrl: value.peer.metadata.icons.isNotEmpty ? value.peer.metadata.icons.first : "https://avatars.githubusercontent.com/u/37784886?s=200&v=4",
+                      imageUrl: value.peer.metadata.icons.isNotEmpty
+                          ? value.peer.metadata.icons.first
+                          : "https://avatars.githubusercontent.com/u/37784886?s=200&v=4",
                       placeholder: (context, url) => const Center(
                         child: SizedBox(
                           width: 54,
@@ -109,10 +128,12 @@ class WFHomeView extends StatelessWidget {
                           child: Center(child: CircularProgressIndicator()),
                         ),
                       ),
-                      errorWidget: (context, url, error) => const Icon(Icons.error),
+                      errorWidget: (context, url, error) =>
+                          const Icon(Icons.error),
                     ),
                     title: Text('DAPP: ${value.peer.metadata.name}'),
-                    subtitle: Text('Topic: $key', style: const TextStyle(fontSize: 13)),
+                    subtitle: Text('Topic: $key',
+                        style: const TextStyle(fontSize: 13)),
                   ),
                 );
               },
@@ -134,7 +155,9 @@ class WFHomeView extends StatelessWidget {
           normalButton("ScanQR", () {
             bloc.scanQR();
           }, width: 200),
-          state.wcUri?.isNotEmpty ?? false ? Text(state.wcUri!) : const SizedBox(),
+          state.wcUri?.isNotEmpty ?? false
+              ? Text(state.wcUri!)
+              : const SizedBox(),
           state.wcUri?.isNotEmpty ?? false
               ? normalButton("Connect", () {
                   bloc.connect(state.wcUri!);

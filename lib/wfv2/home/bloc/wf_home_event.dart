@@ -32,7 +32,8 @@ class NoPermissionEvent extends WfHomeEvent {
 }
 
 class OnSessionProposalEvent extends WfHomeEvent {
-  const OnSessionProposalEvent({required this.args, required this.showSessionProposalDialog});
+  const OnSessionProposalEvent(
+      {required this.args, required this.showSessionProposalDialog});
 
   final SessionProposalEvent? args;
   final bool showSessionProposalDialog;

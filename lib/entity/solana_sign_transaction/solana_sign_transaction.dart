@@ -1,3 +1,4 @@
+// Package imports:
 import 'package:json_annotation/json_annotation.dart';
 
 part 'solana_sign_transaction.g.dart';
@@ -14,7 +15,8 @@ class SolanaSignTransaction {
     required this.instructions,
   });
 
-  factory SolanaSignTransaction.fromJson(Map<String, dynamic> json) => _$SolanaSignTransactionFromJson(json);
+  factory SolanaSignTransaction.fromJson(Map<String, dynamic> json) =>
+      _$SolanaSignTransactionFromJson(json);
 
   Map<String, dynamic> toJson() => _$SolanaSignTransactionToJson(this);
 
@@ -36,7 +38,8 @@ class SolanaInstruction {
     required this.data,
   });
 
-  factory SolanaInstruction.fromJson(Map<String, dynamic> json) => _$SolanaInstructionFromJson(json);
+  factory SolanaInstruction.fromJson(Map<String, dynamic> json) =>
+      _$SolanaInstructionFromJson(json);
 
   Map<String, dynamic> toJson() => _$SolanaInstructionToJson(this);
 
@@ -58,7 +61,8 @@ class SolanaKeyMetadata {
     required this.isWritable,
   });
 
-  factory SolanaKeyMetadata.fromJson(Map<String, dynamic> json) => _$SolanaKeyMetadataFromJson(json);
+  factory SolanaKeyMetadata.fromJson(Map<String, dynamic> json) =>
+      _$SolanaKeyMetadataFromJson(json);
 
   Map<String, dynamic> toJson() => _$SolanaKeyMetadataToJson(this);
 
