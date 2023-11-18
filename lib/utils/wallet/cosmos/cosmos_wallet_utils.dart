@@ -1,15 +1,5 @@
 import "package:alan/alan.dart";
-import 'package:alan/proto/cosmos/auth/v1beta1/export.dart' as auth;
 import 'package:alan/proto/cosmos/bank/v1beta1/export.dart' as bank;
-import 'package:alan/proto/cosmos/slashing/v1beta1/export.dart' as slashing;
-import 'package:alan/proto/cosmos/crisis/v1beta1/export.dart' as crisis;
-import 'package:alan/proto/cosmos/distribution/v1beta1/export.dart' as distr;
-import 'package:alan/proto/cosmos/gov/v1beta1/export.dart' as gov;
-import 'package:alan/proto/cosmos/mint/v1beta1/export.dart' as mint;
-import 'package:alan/proto/cosmos/params/v1beta1/export.dart' as params;
-import 'package:alan/proto/cosmos/slashing/v1beta1/export.dart' as slashing;
-import 'package:alan/proto/cosmos/staking/v1beta1/export.dart' as staking;
-import 'package:alan/proto/cosmos/upgrade/v1beta1/export.dart' as upgrade;
 
 final networkInfo = NetworkInfo.fromSingleHost(
   bech32Hrp: "cosmos",

@@ -32,7 +32,6 @@ import 'package:QRTest_v2_test1/utils/wallet/eth_utils.dart';
 import 'package:QRTest_v2_test1/utils/wallet/wallet_utils.dart';
 import 'package:QRTest_v2_test1/wfv2/client/wc_client.dart';
 import 'package:QRTest_v2_test1/widget/button.dart';
-import 'package:byte_util/byte_util.dart';
 import 'package:convert/convert.dart';
 import 'package:equatable/equatable.dart';
 import 'package:eth_sig_util/eth_sig_util.dart';
@@ -41,7 +40,6 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:flutter_json_viewer2/flutter_json_viewer.dart';
-import 'package:hexdump/hexdump.dart';
 import 'package:ndialog/ndialog.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:walletconnect_flutter_v2/walletconnect_flutter_v2.dart';
@@ -711,7 +709,7 @@ class WfHomeBloc extends Bloc<WfHomeEvent, WfHomeState> {
       to: EthereumAddress.fromHex(ethTransaction.to),
       value: EtherAmount.fromBigInt(
         EtherUnit.wei,
-        BigInt.tryParse(ethTransaction.value) ?? BigInt.zero,
+        BigInt.tryParse(ethTransaction.value ?? "0") ?? BigInt.zero,
       ),
       gasPrice: ethTransaction.gasPrice != null
           ? EtherAmount.fromBigInt(

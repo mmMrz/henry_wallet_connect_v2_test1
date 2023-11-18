@@ -7,7 +7,7 @@ class UKWCTransaction {
   final String? maxPriorityFeePerGas;
   final String? gas;
   final String? gasLimit;
-  final String value;
+  final String? value;
   final String? data;
   Map? decodedData;
 
@@ -24,8 +24,7 @@ class UKWCTransaction {
     this.data,
   });
 
-  factory UKWCTransaction.fromJson(Map<String, dynamic> json) =>
-      _walletConnectTransactionFromJson(json);
+  factory UKWCTransaction.fromJson(Map<String, dynamic> json) => _walletConnectTransactionFromJson(json);
   Map<String, dynamic> toJson() => walletConnectTransactionToJson(this);
 
   @override
@@ -33,9 +32,7 @@ class UKWCTransaction {
     return 'WCEthereumTransaction(from: $from, to: $to, nonce: $nonce, gasPrice: $gasPrice, gas: $gas, gasLimit: $gasLimit, value: $value, data: $data)';
   }
 
-  static UKWCTransaction _walletConnectTransactionFromJson(
-          Map<String, dynamic> json) =>
-      UKWCTransaction(
+  static UKWCTransaction _walletConnectTransactionFromJson(Map<String, dynamic> json) => UKWCTransaction(
         from: json['from'] as String,
         to: json['to'] as String,
         nonce: json['nonce'] as String?,
@@ -44,13 +41,11 @@ class UKWCTransaction {
         maxPriorityFeePerGas: json['maxPriorityFeePerGas'] as String?,
         gas: json['gas'] as String?,
         gasLimit: json['gasLimit'] as String?,
-        value: json['value'] as String,
+        value: json['value'] as String?,
         data: (json['data'] as String?) == null ? null : (json['data'] as String).replaceAll("0x", "").replaceAll("0X", ""),
       );
 
-  Map<String, dynamic> walletConnectTransactionToJson(
-          UKWCTransaction instance) =>
-      <String, dynamic>{
+  Map<String, dynamic> walletConnectTransactionToJson(UKWCTransaction instance) => <String, dynamic>{
         'from': instance.from,
         'to': instance.to,
         'nonce': instance.nonce,

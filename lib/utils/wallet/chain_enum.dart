@@ -278,8 +278,7 @@ Map<ChainEnum, ChainConfigBean> caip2Map = {
   ChainEnum.solana: ChainConfigBean(
     name: "Solana",
     caip2Id: "solana:4sGjMW1sUnHzSxGspuhpqLDx6wiyjNtZ",
-    rpcUrl:
-        "https://solana-mainnet.g.alchemy.com/v2/OcDDIITk_cjAm4V5ZgeD5bcCiHr-Uduc/",
+    rpcUrl: "https://solana-mainnet.g.alchemy.com/v2/OcDDIITk_cjAm4V5ZgeD5bcCiHr-Uduc/",
     symbol: "SOL",
     blockExplorerUrl: "https://explorer.solana.com/",
   ),

@@ -8,8 +8,6 @@ import 'package:web3dart/crypto.dart';
 import 'package:web3dart/web3dart.dart';
 
 // Project imports:
-import 'package:QRTest_v2_test1/utils/logger_utils.dart';
-import 'package:QRTest_v2_test1/utils/wallet/solana/solana_wallet_utils.dart';
 import 'chain_enum.dart';
 
 // import 'package:wallet/wallet.dart' as wallet;
@@ -29,14 +27,12 @@ class WalletUtils {
   late SolanaWalletUtils solanaWalletUtils;
 
   WalletUtils._() {
-    credentials = EthPrivateKey.fromHex("300851edb635b2dbb2d4e70615444925afeb60bf95c19365aff88740e09d7345");
     solanaWalletUtils = SolanaWalletUtils.getInstance();
-    // In either way, the library can derive the public key and the address
-    // from a private key:
 
+    //0x901982861c8fe2e5313d2853e5519bf018711233
+    credentials = EthPrivateKey.fromHex("00925d1cab29f94baa902c623ee5463d6c256439cde19aef4ae790aae9bf312510");
     var address = credentials.address;
-
-    log.d(address.hex);
+    log.d("初始化Evm3Wallet地址:${address.hex}");
   }
 
   String getPrivateKey() {
